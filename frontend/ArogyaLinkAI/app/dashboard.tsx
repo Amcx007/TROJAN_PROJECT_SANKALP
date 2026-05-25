@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { router } from 'expo-router';
+
 import {
   View,
   Text,
@@ -337,7 +339,14 @@ export default function DashboardScreen() {
 
         <View style={styles.quickGrid}>
 
-          <TouchableOpacity style={styles.quickCard}>
+          {/* ADD PATIENT */}
+
+          <TouchableOpacity
+            style={styles.quickCard}
+            onPress={() =>
+              router.push('/add-patient')
+            }
+          >
             <Ionicons
               name="person-add-outline"
               size={24}
