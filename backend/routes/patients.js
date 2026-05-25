@@ -4,11 +4,66 @@ const requireAuth = require('../middleware/auth');
 
 const router = express.Router();
 
+let patientsTableReady = false;
+
+async function ensurePatientsTable() {
+  if (patientsTableReady) {
+    return;
+  }
+
+  await pool.query(`ALTER TABLE patients ADD COLUMN IF NOT EXISTS address TEXT DEFAULT ''`);
+  await pool.query(`ALTER TABLE patients ALTER COLUMN address SET DEFAULT ''`);
+  await pool.query(`UPDATE patients SET address = '' WHERE address IS NULL`);
+
+  patientsTableReady = true;
+}
+
+router.get('/', requireAuth, async (_req, res) => {
+  try {
+    await ensurePatientsTable();
+
+    const { rows } = await pool.query(
+      `SELECT id, full_name, address, dob, mobile, created_at
+       FROM patients
+       ORDER BY created_at DESC`
+    );
+
+    return res.json(rows);
+  } catch (err) {
+    console.error('List patients error', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/:id', requireAuth, async (req, res) => {
+  try {
+    await ensurePatientsTable();
+
+    const { rows } = await pool.query(
+      `SELECT id, full_name, address, dob, mobile, created_at
+       FROM patients
+       WHERE id = $1
+       LIMIT 1`,
+      [req.params.id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+
+    return res.json(rows[0]);
+  } catch (err) {
+    console.error('Get patient error', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.post('/', requireAuth, async (req, res) => {
   const { name, address, dob, mobile } = req.body || {};
+  const normalizedAddress = typeof address === 'string' ? address.trim() : '';
 
-  if (!name || !address || !dob || !mobile) {
-    return res.status(400).json({ error: 'All fields are required' });
+  if (!name || !dob || !mobile) {
+    return res.status(400).json({ error: 'Name, date of birth, and mobile are required' });
   }
 
   if (!/^[6-9]\d{9}$/.test(mobile)) {
@@ -16,11 +71,13 @@ router.post('/', requireAuth, async (req, res) => {
   }
 
   try {
+    await ensurePatientsTable();
+
     const { rows } = await pool.query(
       `INSERT INTO patients (full_name, address, dob, mobile)
        VALUES ($1, $2, $3, $4)
        RETURNING id, full_name, address, dob, mobile, created_at`,
-      [name, address, dob, mobile]
+      [name, normalizedAddress, dob, mobile]
     );
     return res.status(201).json(rows[0]);
   } catch (err) {

@@ -2,15 +2,22 @@ import React, { useState } from 'react';
 import { router } from 'expo-router';
 
 import {
+  Platform,
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
+
+import DateTimePicker, {
+  DateTimePickerAndroid,
+} from '@react-native-community/datetimepicker';
+
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
   Ionicons,
@@ -18,6 +25,10 @@ import {
 
 // @ts-ignore
 import QRCodeSVG from 'react-native-qrcode-svg';
+
+import * as SecureStore from 'expo-secure-store';
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function AddPatientScreen() {
 
@@ -27,13 +38,19 @@ export default function AddPatientScreen() {
   const [dob, setDob] =
     useState('');
 
+  const [dobDate, setDobDate] =
+    useState<Date | null>(null);
+
+  const [showDobPicker, setShowDobPicker] =
+    useState(false);
+
   const [mobile, setMobile] =
     useState('');
 
   const [patientId, setPatientId] =
     useState('');
 
-  const [showQR, setShowQR] =
+  const [loading, setLoading] =
     useState(false);
 
   // ADDRESS STATES
@@ -56,31 +73,51 @@ export default function AddPatientScreen() {
   const [zipCode, setZipCode] =
     useState('');
 
-  const [landmark, setLandmark] =
-    useState('');
+  const generatePatientId = async () => {
 
-  const generatePatientId = () => {
-
-    if (
-      !fullName ||
-      !dob ||
-      !mobile
-    ) {
-
-      Alert.alert(
-        'Missing Details',
-        'Please fill all fields'
-      );
-
+    if (!fullName || !dob || !mobile) {
+      Alert.alert('Missing Details', 'Please fill name, date of birth and mobile');
       return;
     }
 
-    const uniqueId =
-      `ASHA-${Date.now()}`;
+    if (!/^[6-9]\d{9}$/.test(mobile)) {
+      Alert.alert('Invalid Number', 'Enter a valid 10-digit Indian mobile number');
+      return;
+    }
 
-    setPatientId(uniqueId);
+    setLoading(true);
 
-    setShowQR(true);
+    try {
+      const token = await SecureStore.getItemAsync('token');
+
+      const response = await fetch(`${API_BASE_URL}/patients`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: fullName,
+          address: fullAddressPreview,
+          dob,
+          mobile,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert('Error', data?.error || 'Failed to register patient');
+        return;
+      }
+
+      setPatientId(data.id);
+
+    } catch {
+      Alert.alert('Error', 'Unable to connect to server');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fullAddressPreview = [
@@ -88,6 +125,45 @@ export default function AddPatientScreen() {
     [village, district].filter(Boolean).join(', '),
     [state, zipCode].filter(Boolean).join(' - '),
   ].filter(Boolean).join('\n');
+
+  const formatDob = (date: Date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`;
+  };
+
+  const handleDobValueChange = (_event: unknown, selectedDate?: Date) => {
+    if (!selectedDate) {
+      return;
+    }
+
+    setDobDate(selectedDate);
+    setDob(formatDob(selectedDate));
+  };
+
+  const handleDobDismiss = () => {
+    setShowDobPicker(false);
+  };
+
+  const openDobPicker = () => {
+    const initialDate = dobDate ?? new Date();
+
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: initialDate,
+        mode: 'date',
+        display: 'calendar',
+        onValueChange: handleDobValueChange,
+        onDismiss: handleDobDismiss,
+      });
+
+      return;
+    }
+
+    setShowDobPicker(true);
+  };
 
   return (
 
@@ -230,23 +306,7 @@ export default function AddPatientScreen() {
                 keyboardType="number-pad"
                 maxLength={6}
                 value={zipCode}
-                onChangeText={(text) => {
-
-                  setZipCode(text);
-
-                  // DEMO AUTO FILL
-
-                  if (text === '570001') {
-
-                    setVillage('Mysore');
-
-                    setDistrict('Mysuru');
-
-                    setState('Karnataka');
-
-                  }
-
-                }}
+                onChangeText={setZipCode}
               />
 
             </View>
@@ -276,14 +336,19 @@ export default function AddPatientScreen() {
             Date of Birth
           </Text>
 
-          <View style={styles.dateInputWrapper}>
+          <TouchableOpacity
+            style={styles.dateInputWrapper}
+            activeOpacity={0.85}
+            onPress={openDobPicker}
+          >
 
             <TextInput
               style={styles.dateInput}
               placeholder="DD-MM-YYYY"
               placeholderTextColor="#9CA3AF"
               value={dob}
-              onChangeText={setDob}
+              editable={false}
+              pointerEvents="none"
             />
 
             <Ionicons
@@ -292,7 +357,17 @@ export default function AddPatientScreen() {
               color="#19a38c"
             />
 
-          </View>
+          </TouchableOpacity>
+
+          {showDobPicker && Platform.OS !== 'android' && (
+            <DateTimePicker
+              value={dobDate ?? new Date()}
+              mode="date"
+              display="spinner"
+              onValueChange={handleDobValueChange}
+              onDismiss={handleDobDismiss}
+            />
+          )}
 
           {/* MOBILE */}
 
@@ -321,13 +396,18 @@ export default function AddPatientScreen() {
           {/* BUTTON */}
 
           <TouchableOpacity
-            style={styles.generateButton}
+            style={[styles.generateButton, loading && { opacity: 0.7 }]}
             onPress={generatePatientId}
+            disabled={loading}
           >
 
-            <Text style={styles.generateButtonText}>
-              Generate Patient ID
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.generateButtonText}>
+                Generate Patient ID
+              </Text>
+            )}
 
           </TouchableOpacity>
 
@@ -335,7 +415,7 @@ export default function AddPatientScreen() {
 
         {/* QR CARD */}
 
-        {showQR && (
+        {!!patientId && (
 
           <View style={styles.qrCard}>
 
