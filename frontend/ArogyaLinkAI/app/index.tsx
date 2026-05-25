@@ -18,6 +18,9 @@ import {
   Ionicons,
 } from '@expo/vector-icons';
 
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL;
+
 export default function LoginScreen() {
 
   const [email, setEmail] =
@@ -45,11 +48,33 @@ export default function LoginScreen() {
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      if (!API_BASE_URL) {
+        setError('Set EXPO_PUBLIC_API_URL in your frontend .env');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data?.error || 'Invalid credentials');
+        return;
+      }
 
       router.push('/dashboard');
-    }, 2000);
+    } catch {
+      setError('Unable to connect to the server');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -102,7 +127,7 @@ export default function LoginScreen() {
               />
 
               <TextInput
-                placeholder="Email or Mobile Number"
+                placeholder="Email"
                 placeholderTextColor="#8a8a8a"
                 style={styles.input}
                 value={email}
