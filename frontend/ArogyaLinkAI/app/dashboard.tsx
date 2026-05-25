@@ -82,6 +82,24 @@ export default function DashboardScreen() {
               </Text>
             </TouchableOpacity>
 
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => {
+                setMenuOpen(false);
+                router.push('/patient-list');
+              }}
+            >
+              <Ionicons
+                name="people-outline"
+                size={22}
+                color="#fff"
+              />
+
+              <Text style={styles.drawerText}>
+                Patient Details
+              </Text>
+            </TouchableOpacity>
+
           </View>
 
         </View>
