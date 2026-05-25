@@ -96,6 +96,15 @@ export default function PatientSurveyScreen() {
     setCameraLocked(false);
   };
 
+  const normalizeQrValue = (value: string) => {
+    const trimmed = value.trim();
+    const uuidMatch = trimmed.match(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i
+    );
+
+    return uuidMatch ? uuidMatch[0] : trimmed;
+  };
+
   const loadPatientByQr = async (qrValue: string) => {
     const token = await SecureStore.getItemAsync('token');
 
@@ -126,7 +135,7 @@ export default function PatientSurveyScreen() {
     setScanLoading(true);
 
     try {
-      const foundPatient = await loadPatientByQr(data.trim());
+      const foundPatient = await loadPatientByQr(normalizeQrValue(data));
       setPatient(foundPatient);
       setAnswers({});
       setSurveySubmitted(false);
@@ -141,16 +150,20 @@ export default function PatientSurveyScreen() {
   };
 
   const startScan = async () => {
-    if (!permission) {
-      return;
+    let currentPermission = permission;
+
+    if (!currentPermission) {
+      currentPermission = await requestPermission();
     }
 
-    if (!permission.granted) {
-      const result = await requestPermission();
-      if (!result.granted) {
+    if (!currentPermission?.granted) {
+      if (!currentPermission) {
         Alert.alert('Camera permission required', 'Allow camera access to scan the patient QR code.');
-        return;
+      } else {
+        Alert.alert('Camera permission required', 'Allow camera access to scan the patient QR code.');
       }
+
+      return;
     }
 
     setScannerVisible(true);
