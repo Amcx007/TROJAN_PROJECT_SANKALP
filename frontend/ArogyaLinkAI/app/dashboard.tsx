@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,128 +10,211 @@ import {
 
 import {
   Ionicons,
-  MaterialIcons,
+  MaterialCommunityIcons,
   FontAwesome5,
 } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
+
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
+
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
-      >
 
-        {/* Header */}
+      {/* SIDE DRAWER */}
 
-        <View style={styles.header}>
+      {menuOpen && (
 
-          <View>
-            <Text style={styles.greeting}>
-              Good Morning,
-            </Text>
+        <View style={styles.drawerOverlay}>
 
-            <Text style={styles.workerName}>
-              ASHA Worker
-            </Text>
-          </View>
+          <View style={styles.drawerMenu}>
 
-          <View style={styles.headerIcons}>
-
-            <TouchableOpacity style={styles.iconBtn}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setMenuOpen(false)}
+            >
               <Ionicons
-                name="notifications-outline"
-                size={22}
-                color="#111"
+                name="close"
+                size={30}
+                color="#fff"
               />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.profileCircle}>
+            <Text style={styles.drawerTitle}>
+              ASHA Worker
+            </Text>
+
+            <Text style={styles.drawerSubtitle}>
+              Community Health Worker
+            </Text>
+
+            <TouchableOpacity style={styles.drawerItem}>
               <Ionicons
-                name="person"
+                name="calendar-outline"
                 size={22}
                 color="#fff"
               />
+
+              <Text style={styles.drawerText}>
+                Scheduling
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.drawerItem}>
+              <Ionicons
+                name="warning-outline"
+                size={22}
+                color="#fff"
+              />
+
+              <Text style={styles.drawerText}>
+                Critical Alerts
+              </Text>
             </TouchableOpacity>
 
           </View>
 
         </View>
 
-        {/* Main Overview Card */}
+      )}
 
-        <View style={styles.overviewCard}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+      >
 
-          <Text style={styles.overviewTitle}>
-            ArogyaLink AI
-          </Text>
+        {/* HEADER */}
 
-          <Text style={styles.overviewSubtitle}>
-            Rural Healthcare Dashboard
-          </Text>
+        <View style={styles.header}>
 
-          <View style={styles.statsRow}>
+          <View style={styles.topRow}>
 
-            <View style={styles.statItem}>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setMenuOpen(true)}
+            >
               <Ionicons
-                name="people-outline"
-                size={20}
+                name="menu"
+                size={28}
+                color="#111827"
+              />
+            </TouchableOpacity>
+
+            {/* CLOUD STATUS */}
+
+            <TouchableOpacity style={styles.cloudButton}>
+
+              <Ionicons
+                name="cloud-offline-outline"
+                size={22}
+                color="#F97316"
+              />
+
+            </TouchableOpacity>
+
+            {/* PROFILE */}
+
+            <TouchableOpacity style={styles.profileCircle}>
+
+              <Ionicons
+                name="person"
+                size={22}
                 color="#fff"
               />
 
-              <Text style={styles.statNumber}>
+            </TouchableOpacity>
+
+          </View>
+
+          <View style={styles.welcomeSection}>
+
+            <Text style={styles.greeting}>
+              Welcome
+            </Text>
+
+            <Text style={styles.workerName}>
+              ASHA Worker
+            </Text>
+
+          </View>
+
+        </View>
+
+        {/* HERO CARD */}
+
+        <View style={styles.heroCard}>
+
+          <Text style={styles.heroTitle}>
+            ArogyaLink AI
+          </Text>
+
+          <Text style={styles.heroSubtitle}>
+            Rural Healthcare Dashboard
+          </Text>
+
+          <View style={styles.heroStats}>
+
+            <View style={styles.heroStatItem}>
+              <Ionicons
+                name="people-outline"
+                size={18}
+                color="#D1FAE5"
+              />
+
+              <Text style={styles.heroStatNumber}>
                 128
               </Text>
 
-              <Text style={styles.statLabel}>
+              <Text style={styles.heroStatLabel}>
                 Patients
               </Text>
             </View>
 
-            <View style={styles.statItem}>
+            <View style={styles.heroStatItem}>
               <Ionicons
-                name="medkit-outline"
-                size={20}
-                color="#fff"
+                name="warning-outline"
+                size={18}
+                color="#D1FAE5"
               />
 
-              <Text style={styles.statNumber}>
-                87
-              </Text>
-
-              <Text style={styles.statLabel}>
-                Vaccinated
-              </Text>
-            </View>
-
-            <View style={styles.statItem}>
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color="#fff"
-              />
-
-              <Text style={styles.statNumber}>
+              <Text style={styles.heroStatNumber}>
                 12
               </Text>
 
-              <Text style={styles.statLabel}>
+              <Text style={styles.heroStatLabel}>
+                High Risk
+              </Text>
+            </View>
+
+            <View style={styles.heroStatItem}>
+              <Ionicons
+                name="calendar-outline"
+                size={18}
+                color="#D1FAE5"
+              />
+
+              <Text style={styles.heroStatNumber}>
+                18
+              </Text>
+
+              <Text style={styles.heroStatLabel}>
                 Visits
               </Text>
             </View>
 
-            <View style={styles.statItem}>
+            <View style={styles.heroStatItem}>
               <Ionicons
                 name="sync-outline"
-                size={20}
-                color="#fff"
+                size={18}
+                color="#D1FAE5"
               />
 
-              <Text style={styles.statNumber}>
+              <Text style={styles.heroStatNumber}>
                 5
               </Text>
 
-              <Text style={styles.statLabel}>
+              <Text style={styles.heroStatLabel}>
                 Pending
               </Text>
             </View>
@@ -140,143 +223,171 @@ export default function DashboardScreen() {
 
         </View>
 
-        {/* Small Stats Cards */}
+        {/* PRIORITY MONITORING */}
+
+        <Text style={styles.sectionTitle}>
+          Priority Monitoring
+        </Text>
 
         <View style={styles.gridContainer}>
 
-          <View style={styles.smallCard}>
-            <View style={styles.cardIconPurple}>
+          <View style={styles.healthCard}>
+
+            <View style={styles.iconRed}>
               <FontAwesome5
-                name="female"
-                size={18}
-                color="#7C4DFF"
-              />
-            </View>
-
-            <Text style={styles.cardTitle}>
-              Pregnant Women
-            </Text>
-
-            <Text style={styles.cardNumber}>
-              24
-            </Text>
-          </View>
-
-          <View style={styles.smallCard}>
-            <View style={styles.cardIconGreen}>
-              <Ionicons
-                name="happy-outline"
-                size={18}
-                color="#16A34A"
-              />
-            </View>
-
-            <Text style={styles.cardTitle}>
-              Children
-            </Text>
-
-            <Text style={styles.cardNumber}>
-              65
-            </Text>
-          </View>
-
-          <View style={styles.smallCard}>
-            <View style={styles.cardIconBlue}>
-              <MaterialIcons
-                name="health-and-safety"
-                size={18}
-                color="#2563EB"
-              />
-            </View>
-
-            <Text style={styles.cardTitle}>
-              Vaccinated
-            </Text>
-
-            <Text style={styles.cardNumber}>
-              87%
-            </Text>
-          </View>
-
-          <View style={styles.smallCard}>
-            <View style={styles.cardIconRed}>
-              <Ionicons
-                name="warning-outline"
+                name="heartbeat"
                 size={18}
                 color="#DC2626"
               />
             </View>
 
             <Text style={styles.cardTitle}>
-              High Risk
+              Hypertension
             </Text>
 
             <Text style={styles.cardNumber}>
-              12
+              31
             </Text>
+
+            <Text style={styles.cardSubText}>
+              8 uncontrolled
+            </Text>
+
+          </View>
+
+          <View style={styles.healthCard}>
+
+            <View style={styles.iconOrange}>
+              <MaterialCommunityIcons
+                name="diabetes"
+                size={20}
+                color="#EA580C"
+              />
+            </View>
+
+            <Text style={styles.cardTitle}>
+              Diabetes
+            </Text>
+
+            <Text style={styles.cardNumber}>
+              42
+            </Text>
+
+            <Text style={styles.cardSubText}>
+              5 sugar alerts
+            </Text>
+
+          </View>
+
+          <View style={styles.healthCard}>
+
+            <View style={styles.iconBlue}>
+              <Ionicons
+                name="warning-outline"
+                size={20}
+                color="#2563EB"
+              />
+            </View>
+
+            <Text style={styles.cardTitle}>
+              Critical
+            </Text>
+
+            <Text style={styles.cardNumber}>
+              7
+            </Text>
+
+            <Text style={styles.cardSubText}>
+              Immediate follow-up
+            </Text>
+
+          </View>
+
+          <View style={styles.healthCard}>
+
+            <View style={styles.iconGreen}>
+              <Ionicons
+                name="checkmark-done-outline"
+                size={20}
+                color="#16A34A"
+              />
+            </View>
+
+            <Text style={styles.cardTitle}>
+              Controlled
+            </Text>
+
+            <Text style={styles.cardNumber}>
+              64
+            </Text>
+
+            <Text style={styles.cardSubText}>
+              Stable cases
+            </Text>
+
           </View>
 
         </View>
 
-        {/* Quick Actions */}
+        {/* QUICK ACTIONS */}
 
         <Text style={styles.sectionTitle}>
           Quick Actions
         </Text>
 
-        <View style={styles.actionsContainer}>
+        <View style={styles.quickGrid}>
 
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity style={styles.quickCard}>
             <Ionicons
               name="person-add-outline"
-              size={26}
-              color="#2563EB"
+              size={24}
+              color="#7C3AED"
             />
 
-            <Text style={styles.actionText}>
+            <Text style={styles.quickText}>
               Add Patient
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionCard}>
-            <Ionicons
-              name="clipboard-outline"
-              size={26}
-              color="#16A34A"
+          <TouchableOpacity style={styles.quickCard}>
+            <MaterialCommunityIcons
+              name="stethoscope"
+              size={24}
+              color="#19a38c"
             />
 
-            <Text style={styles.actionText}>
-              Records
+            <Text style={styles.quickText}>
+              Record BP
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity style={styles.quickCard}>
             <Ionicons
               name="sync-outline"
-              size={26}
-              color="#EA580C"
+              size={24}
+              color="#DC2626"
             />
 
-            <Text style={styles.actionText}>
+            <Text style={styles.quickText}>
               Sync Data
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity style={styles.quickCard}>
             <Ionicons
               name="calendar-outline"
-              size={26}
-              color="#7C3AED"
+              size={24}
+              color="#2563EB"
             />
 
-            <Text style={styles.actionText}>
+            <Text style={styles.quickText}>
               Visits
             </Text>
           </TouchableOpacity>
 
         </View>
 
-        {/* Recent Activity */}
+        {/* RECENT ACTIVITY */}
 
         <Text style={styles.sectionTitle}>
           Recent Activity
@@ -285,45 +396,53 @@ export default function DashboardScreen() {
         <View style={styles.activityCard}>
 
           <View style={styles.activityItem}>
+
             <Ionicons
               name="checkmark-circle"
-              size={20}
+              size={18}
               color="#16A34A"
             />
 
             <Text style={styles.activityText}>
-              Patient data synced successfully
+              Patient data synced
             </Text>
+
           </View>
 
           <View style={styles.activityItem}>
+
             <Ionicons
               name="person-add"
-              size={20}
+              size={18}
               color="#2563EB"
             />
 
             <Text style={styles.activityText}>
               New patient added today
             </Text>
+
           </View>
 
           <View style={styles.activityItem}>
+
             <Ionicons
               name="warning"
-              size={20}
+              size={18}
               color="#DC2626"
             />
 
             <Text style={styles.activityText}>
-              2 vaccination alerts pending
+              2 critical BP alerts
             </Text>
+
           </View>
 
         </View>
 
       </ScrollView>
+
     </SafeAreaView>
+
   );
 }
 
@@ -331,7 +450,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#F4F7FB',
+    backgroundColor: '#F4F7F9',
   },
 
   scrollContainer: {
@@ -339,89 +458,160 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  header: {
+  drawerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    zIndex: 999,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 28,
   },
 
-  greeting: {
-    fontSize: 16,
-    color: '#6B7280',
+  drawerMenu: {
+    width: '78%',
+    backgroundColor: '#19a38c',
+    paddingTop: 80,
+    paddingHorizontal: 24,
+    borderTopRightRadius: 30,
+    borderBottomRightRadius: 30,
   },
 
-  workerName: {
-    fontSize: 28,
+  drawerTitle: {
+    color: '#fff',
+    fontSize: 30,
     fontWeight: '700',
-    color: '#111827',
-    marginTop: 4,
+    marginTop: 20,
   },
 
-  headerIcons: {
+  drawerSubtitle: {
+    color: '#D1FAE5',
+    marginTop: 6,
+    marginBottom: 40,
+    fontSize: 15,
+  },
+
+  drawerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+
+  drawerText: {
+    color: '#ffffff',
+    fontSize: 18,
+    marginLeft: 18,
+    fontWeight: '600',
+  },
+
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+  },
+
+  header: {
+    marginBottom: 24,
+  },
+
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
 
-  iconBtn: {
+  menuButton: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  cloudButton: {
     width: 46,
     height: 46,
     borderRadius: 23,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 'auto',
     marginRight: 12,
   },
 
   profileCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     backgroundColor: '#19a38c',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
-  overviewCard: {
-    backgroundColor: '#2563EB',
-    borderRadius: 30,
-    padding: 26,
-    marginBottom: 24,
+  welcomeSection: {
+    marginTop: 22,
   },
 
-  overviewTitle: {
+  greeting: {
+    fontSize: 18,
+    color: '#6B7280',
+  },
+
+  workerName: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 6,
+  },
+
+  heroCard: {
+    backgroundColor: '#19a38c',
+    borderRadius: 30,
+    padding: 24,
+    marginBottom: 28,
+  },
+
+  heroTitle: {
+    color: '#fff',
     fontSize: 28,
     fontWeight: '700',
-    color: '#fff',
   },
 
-  overviewSubtitle: {
-    fontSize: 16,
-    color: '#E0E7FF',
+  heroSubtitle: {
+    color: '#D1FAE5',
     marginTop: 6,
-    marginBottom: 30,
+    marginBottom: 24,
+    fontSize: 15,
   },
 
-  statsRow: {
+  heroStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
 
-  statItem: {
+  heroStatItem: {
     alignItems: 'center',
   },
 
-  statNumber: {
+  heroStatNumber: {
     color: '#fff',
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
-    marginTop: 10,
+    marginTop: 8,
   },
 
-  statLabel: {
-    color: '#DBEAFE',
-    fontSize: 13,
+  heroStatLabel: {
+    color: '#D1FAE5',
     marginTop: 4,
+    fontSize: 13,
+  },
+
+  sectionTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 18,
   },
 
   gridContainer: {
@@ -431,7 +621,7 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
 
-  smallCard: {
+  healthCard: {
     width: '48%',
     backgroundColor: '#fff',
     borderRadius: 24,
@@ -439,79 +629,78 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  cardTitle: {
-    fontSize: 15,
-    color: '#6B7280',
-    marginTop: 14,
-  },
-
-  cardNumber: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-    marginTop: 8,
-  },
-
-  cardIconPurple: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F3E8FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  cardIconGreen: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#DCFCE7',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  cardIconBlue: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#DBEAFE',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  cardIconRed: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  iconRed: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: '#FEE2E2',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 18,
+  iconOrange: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#FFEDD5',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  actionsContainer: {
+  iconBlue: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#DBEAFE',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  iconGreen: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#DCFCE7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  cardTitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 16,
+  },
+
+  cardNumber: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 10,
+  },
+
+  cardSubText: {
+    color: '#9CA3AF',
+    marginTop: 6,
+    fontSize: 14,
+  },
+
+  quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: 28,
   },
 
-  actionCard: {
+  quickCard: {
     width: '48%',
     backgroundColor: '#fff',
     borderRadius: 24,
-    paddingVertical: 26,
+    paddingVertical: 28,
     alignItems: 'center',
     marginBottom: 16,
   },
 
-  actionText: {
+  quickText: {
     marginTop: 12,
     fontSize: 15,
     fontWeight: '600',
@@ -522,6 +711,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 24,
     padding: 22,
+    marginBottom: 40,
   },
 
   activityItem: {
@@ -532,8 +722,8 @@ const styles = StyleSheet.create({
 
   activityText: {
     marginLeft: 12,
-    fontSize: 15,
     color: '#374151',
+    fontSize: 15,
   },
 
 });
