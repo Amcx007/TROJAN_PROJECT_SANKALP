@@ -124,18 +124,17 @@ export default function LoginScreen() {
             <View style={styles.inputWrapper}>
 
               <Ionicons
-                name="mail-outline"
+                name="person-outline"
                 size={20}
                 color="#7a7a7a"
               />
 
               <TextInput
-                placeholder="Email"
+                placeholder="Username"
                 placeholderTextColor="#8a8a8a"
                 style={styles.input}
                 value={email}
                 onChangeText={setEmail}
-                keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
               />
