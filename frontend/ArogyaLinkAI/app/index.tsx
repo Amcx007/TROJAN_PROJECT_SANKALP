@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
@@ -24,7 +24,7 @@ const API_BASE_URL =
 
 export default function LoginScreen() {
 
-  const [email, setEmail] =
+  const [username, setUsername] =
     useState('');
 
   const [password, setPassword] =
@@ -41,7 +41,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
 
-    if (!email || !password) {
+    if (!username || !password) {
       setError('Please fill all fields');
       return;
     }
@@ -60,7 +60,7 @@ export default function LoginScreen() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
@@ -71,7 +71,7 @@ export default function LoginScreen() {
       }
 
       await SecureStore.setItemAsync('token', data.token);
-      await SecureStore.setItemAsync('email', data.email);
+      await SecureStore.setItemAsync('username', data.username);
       router.replace('/dashboard');
     } catch {
       setError('Unable to connect to the server');
@@ -133,8 +133,8 @@ export default function LoginScreen() {
                 placeholder="Username"
                 placeholderTextColor="#8a8a8a"
                 style={styles.input}
-                value={email}
-                onChangeText={setEmail}
+                value={username}
+                onChangeText={setUsername}
                 autoCapitalize="none"
                 autoCorrect={false}
               />

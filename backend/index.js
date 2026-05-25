@@ -1,6 +1,7 @@
-require('dotenv').config();
+require('dotenv').config({ path: __dirname + '/.env' });
 const express = require('express');
 const authRouter = require('./routes/auth');
+const patientsRouter = require('./routes/patients');
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 app.use('/auth', authRouter);
+app.use('/patients', patientsRouter);
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 

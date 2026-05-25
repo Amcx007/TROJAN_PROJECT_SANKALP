@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   View,
@@ -8,19 +8,23 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { router } from 'expo-router';
-
-import DateTimePicker from
-  '@react-native-community/datetimepicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 // @ts-ignore
 import QRCodeSVG from 'react-native-qrcode-svg';
+
+import { router } from 'expo-router';
+
+import * as SecureStore from 'expo-secure-store';
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function AddPatientScreen() {
 
@@ -35,30 +39,47 @@ export default function AddPatientScreen() {
   const [date, setDate] =
     useState(new Date());
 
-  const [patientId, setPatientId] =
-    useState('');
+  const [patientId, setPatientId] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const generatePatient = () => {
+  const generatePatient = async () => {
 
-    if (
-      !name ||
-      !address ||
-      !dob ||
-      !mobile
-    ) {
-
-      Alert.alert(
-        'Missing Fields',
-        'Please fill all fields'
-      );
-
+    if (!name || !address || !dob || !mobile) {
+      Alert.alert('Missing Fields', 'Please fill all fields');
       return;
     }
 
-    const uniqueId =
-      `ASHA-${Date.now()}`;
+    if (!/^[6-9]\d{9}$/.test(mobile)) {
+      Alert.alert('Invalid Number', 'Enter a valid 10-digit Indian mobile number');
+      return;
+    }
 
-    setPatientId(uniqueId);
+    setLoading(true);
+    try {
+      const token = await SecureStore.getItemAsync('token');
+
+      const response = await fetch(`${API_BASE_URL}/patients`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name, address, dob, mobile }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert('Error', data?.error || 'Failed to register patient');
+        return;
+      }
+
+      setPatientId(data.id);
+    } catch {
+      Alert.alert('Error', 'Unable to connect to server');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -254,14 +275,17 @@ export default function AddPatientScreen() {
           {/* BUTTON */}
 
           <TouchableOpacity
-            style={styles.generateButton}
+            style={[styles.generateButton, loading && { opacity: 0.7 }]}
             onPress={generatePatient}
+            disabled={loading}
           >
-
-            <Text style={styles.generateText}>
-              Generate Patient ID
-            </Text>
-
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.generateText}>
+                Generate Patient ID
+              </Text>
+            )}
           </TouchableOpacity>
 
         </View>

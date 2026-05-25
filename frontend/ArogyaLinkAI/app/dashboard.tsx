@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { router } from 'expo-router';
 import { useNetInfo } from '@react-native-community/netinfo';
 import {
