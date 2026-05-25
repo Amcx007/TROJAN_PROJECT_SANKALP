@@ -5,10 +5,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
   Ionicons,
@@ -22,9 +23,13 @@ export default function DashboardScreen() {
   const netInfo = useNetInfo();
   const isOnline = netInfo.isConnected === true;
 
+  
+
   return (
 
     <SafeAreaView style={styles.container}>
+
+      
 
       {/* SIDE DRAWER */}
 
@@ -82,6 +87,7 @@ export default function DashboardScreen() {
         </View>
 
       )}
+
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -519,6 +525,7 @@ const styles = StyleSheet.create({
     top: 50,
     right: 20,
   },
+  
 
   header: {
     marginBottom: 24,
