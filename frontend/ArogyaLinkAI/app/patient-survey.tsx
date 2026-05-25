@@ -118,6 +118,10 @@ export default function PatientSurveyScreen() {
       },
     });
 
+    if (response.status === 401) {
+      throw new Error('SESSION_EXPIRED');
+    }
+
     if (!response.ok) {
       const data = await response.json().catch(() => null);
       throw new Error(data?.error || 'Patient not found');
@@ -142,7 +146,11 @@ export default function PatientSurveyScreen() {
       setScannerVisible(false);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to read patient QR';
-      Alert.alert('Scan failed', message);
+      if (message === 'SESSION_EXPIRED') {
+        Alert.alert('Session expired', 'Your login has expired. Please go back and log in again.');
+      } else {
+        Alert.alert('Scan failed', message);
+      }
     } finally {
       setScanLoading(false);
       setCameraLocked(false);

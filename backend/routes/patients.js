@@ -6,10 +6,25 @@ const router = express.Router();
 
 let patientsTableReady = false;
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function ensurePatientsTable() {
   if (patientsTableReady) {
     return;
   }
+
+  await pool.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS patients (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      full_name TEXT NOT NULL,
+      address TEXT NOT NULL DEFAULT '',
+      dob TEXT NOT NULL,
+      mobile TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
 
   await pool.query(`ALTER TABLE patients ADD COLUMN IF NOT EXISTS address TEXT DEFAULT ''`);
   await pool.query(`ALTER TABLE patients ALTER COLUMN address SET DEFAULT ''`);
@@ -36,6 +51,10 @@ router.get('/', requireAuth, async (_req, res) => {
 });
 
 router.get('/:id', requireAuth, async (req, res) => {
+  if (!UUID_REGEX.test(req.params.id)) {
+    return res.status(400).json({ error: 'Invalid patient ID — please scan a valid QR code' });
+  }
+
   try {
     await ensurePatientsTable();
 

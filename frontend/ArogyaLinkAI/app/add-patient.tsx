@@ -155,7 +155,7 @@ export default function AddPatientScreen() {
         value: initialDate,
         mode: 'date',
         display: 'calendar',
-        onValueChange: handleDobValueChange,
+        onChange: handleDobValueChange,
         onDismiss: handleDobDismiss,
       });
 
