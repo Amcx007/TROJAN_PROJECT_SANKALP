@@ -1,9 +1,9 @@
 import { View, Text } from 'react-native';
 
-export default function Dashboard() {
+export default function SyncScreen() {
   return (
     <View>
-      <Text>Dashboard Screen</Text>
+      <Text>Sync Screen</Text>
     </View>
   );
 }

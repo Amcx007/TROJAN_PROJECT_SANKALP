@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { router } from 'expo-router';
-
+import { useNetInfo } from '@react-native-community/netinfo';
 import {
   View,
   Text,
@@ -19,6 +19,8 @@ import {
 export default function DashboardScreen() {
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const netInfo = useNetInfo();
+  const isOnline = netInfo.isConnected === true;
 
   return (
 
@@ -108,9 +110,9 @@ export default function DashboardScreen() {
             <TouchableOpacity style={styles.cloudButton}>
 
               <Ionicons
-                name="cloud-offline-outline"
+                name={isOnline ? 'cloud-done-outline' : 'cloud-offline-outline'}
                 size={22}
-                color="#F97316"
+                color={isOnline ? '#16A34A' : '#F97316'}
               />
 
             </TouchableOpacity>
@@ -343,9 +345,7 @@ export default function DashboardScreen() {
 
           <TouchableOpacity
             style={styles.quickCard}
-            onPress={() =>
-              router.push('/add-patient')
-            }
+            onPress={() => router.push('/add-patient')}
           >
             <Ionicons
               name="person-add-outline"
@@ -736,3 +736,9 @@ const styles = StyleSheet.create({
   },
 
 });
+
+
+
+
+
+

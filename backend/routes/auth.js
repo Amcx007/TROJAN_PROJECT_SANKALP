@@ -5,6 +5,11 @@ const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET is not set in .env');
+  process.exit(1);
+}
+
 router.post('/login', async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: 'Missing email or password' });
@@ -17,7 +22,7 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'devsecret', {
+    const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, {
       expiresIn: '8h',
     });
 

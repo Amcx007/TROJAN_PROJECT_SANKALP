@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 
 import {
   View,
@@ -69,7 +70,9 @@ export default function LoginScreen() {
         return;
       }
 
-      router.push('/dashboard');
+      await SecureStore.setItemAsync('token', data.token);
+      await SecureStore.setItemAsync('email', data.email);
+      router.replace('/dashboard');
     } catch {
       setError('Unable to connect to the server');
     } finally {
@@ -132,6 +135,9 @@ export default function LoginScreen() {
                 style={styles.input}
                 value={email}
                 onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
               />
 
             </View>
