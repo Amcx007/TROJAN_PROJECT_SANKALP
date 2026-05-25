@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Pressable,
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,74 +36,80 @@ export default function DashboardScreen() {
 
       {menuOpen && (
 
-        <View style={styles.drawerOverlay}>
+        <Pressable style={styles.drawerOverlay} onPress={() => setMenuOpen(false)}>
+          <Pressable onPress={() => {}} style={styles.drawerPressable}>
+            <View style={styles.drawerMenu}>
 
-          <View style={styles.drawerMenu}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setMenuOpen(false)}
+              >
+                <Ionicons
+                  name="close"
+                  size={30}
+                  color="#fff"
+                />
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setMenuOpen(false)}
-            >
-              <Ionicons
-                name="close"
-                size={30}
-                color="#fff"
-              />
-            </TouchableOpacity>
-
-            <Text style={styles.drawerTitle}>
-              ASHA Worker
-            </Text>
-
-            <Text style={styles.drawerSubtitle}>
-              Community Health Worker
-            </Text>
-
-            <TouchableOpacity style={styles.drawerItem}>
-              <Ionicons
-                name="calendar-outline"
-                size={22}
-                color="#fff"
-              />
-
-              <Text style={styles.drawerText}>
-                Scheduling
+              <Text style={styles.drawerTitle}>
+                ASHA Worker
               </Text>
-            </TouchableOpacity>
 
-            <TouchableOpacity style={styles.drawerItem}>
-              <Ionicons
-                name="warning-outline"
-                size={22}
-                color="#fff"
-              />
-
-              <Text style={styles.drawerText}>
-                Critical Alerts
+              <Text style={styles.drawerSubtitle}>
+                Community Health Worker
               </Text>
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.drawerItem}
-              onPress={() => {
-                setMenuOpen(false);
-                router.push('/patient-list');
-              }}
-            >
-              <Ionicons
-                name="people-outline"
-                size={22}
-                color="#fff"
-              />
+              <TouchableOpacity
+                style={styles.drawerItem}
+                onPress={() => {
+                  setMenuOpen(false);
+                  router.push('/visits');
+                }}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={22}
+                  color="#fff"
+                />
 
-              <Text style={styles.drawerText}>
-                Patient Details
-              </Text>
-            </TouchableOpacity>
+                <Text style={styles.drawerText}>
+                  Scheduling
+                </Text>
+              </TouchableOpacity>
 
-          </View>
+              <TouchableOpacity style={styles.drawerItem}>
+                <Ionicons
+                  name="warning-outline"
+                  size={22}
+                  color="#fff"
+                />
 
-        </View>
+                <Text style={styles.drawerText}>
+                  Critical Alerts
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.drawerItem}
+                onPress={() => {
+                  setMenuOpen(false);
+                  router.push('/patient-list');
+                }}
+              >
+                <Ionicons
+                  name="people-outline"
+                  size={22}
+                  color="#fff"
+                />
+
+                <Text style={styles.drawerText}>
+                  Patient Details
+                </Text>
+              </TouchableOpacity>
+
+            </View>
+          </Pressable>
+        </Pressable>
 
       )}
 
@@ -124,7 +131,7 @@ export default function DashboardScreen() {
             >
               <Ionicons
                 name="menu"
-                size={28}
+                size={22}
                 color="#111827"
               />
             </TouchableOpacity>
@@ -174,7 +181,7 @@ export default function DashboardScreen() {
         <View style={styles.heroCard}>
 
           <Text style={styles.heroTitle}>
-            ArogyaLink AI
+            ASHA+
           </Text>
 
           <Text style={styles.heroSubtitle}>
@@ -411,15 +418,20 @@ export default function DashboardScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.quickCard}>
+          <TouchableOpacity
+            style={styles.quickCard}
+            onPress={() =>
+              router.push('/visits')
+            }
+          >
             <Ionicons
-              name="calendar-outline"
+              name="home-outline"
               size={24}
               color="#2563EB"
             />
 
             <Text style={styles.quickText}>
-              Visits
+              Home Visits
             </Text>
           </TouchableOpacity>
 
@@ -507,6 +519,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
 
+  drawerPressable: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+
   drawerMenu: {
     width: '78%',
     backgroundColor: '#19a38c',
@@ -560,9 +577,9 @@ const styles = StyleSheet.create({
   },
 
   menuButton: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -580,9 +597,9 @@ const styles = StyleSheet.create({
   },
 
   profileCircle: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: '#19a38c',
     justifyContent: 'center',
     alignItems: 'center',

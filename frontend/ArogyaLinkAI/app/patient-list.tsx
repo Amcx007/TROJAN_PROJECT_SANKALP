@@ -221,7 +221,7 @@ export default function PatientDetailsScreen() {
               <>
 
                 <Text style={styles.cardHeader}>
-                  ArogyaLink AI
+                  ASHA+
                 </Text>
 
                 <Text style={styles.cardSubHeader}>
