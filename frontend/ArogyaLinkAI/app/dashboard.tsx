@@ -382,15 +382,20 @@ export default function DashboardScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.quickCard}>
+          <TouchableOpacity
+            style={styles.quickCard}
+            onPress={() =>
+              router.push('/patient-survey')
+            }
+          >
             <MaterialCommunityIcons
-              name="stethoscope"
+              name="clipboard-text-outline"
               size={24}
               color="#19a38c"
             />
 
             <Text style={styles.quickText}>
-              Record BP
+              Patient Survey
             </Text>
           </TouchableOpacity>
 
