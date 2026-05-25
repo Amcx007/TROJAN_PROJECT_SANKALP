@@ -1,101 +1,108 @@
 import React, { useState } from 'react';
+import { router } from 'expo-router';
 
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
-  TouchableOpacity,
+  SafeAreaView,
   ScrollView,
+  TouchableOpacity,
+  TextInput,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { Ionicons } from '@expo/vector-icons';
-
-import DateTimePicker from '@react-native-community/datetimepicker';
+import {
+  Ionicons,
+} from '@expo/vector-icons';
 
 // @ts-ignore
 import QRCodeSVG from 'react-native-qrcode-svg';
 
-import { router } from 'expo-router';
-
-import * as SecureStore from 'expo-secure-store';
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-
 export default function AddPatientScreen() {
 
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [dob, setDob] = useState('');
-  const [mobile, setMobile] = useState('');
+  const [fullName, setFullName] =
+    useState('');
 
-  const [showPicker, setShowPicker] =
+  const [dob, setDob] =
+    useState('');
+
+  const [mobile, setMobile] =
+    useState('');
+
+  const [patientId, setPatientId] =
+    useState('');
+
+  const [showQR, setShowQR] =
     useState(false);
 
-  const [date, setDate] =
-    useState(new Date());
+  // ADDRESS STATES
 
-  const [patientId, setPatientId] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [houseNo, setHouseNo] =
+    useState('');
 
-  const generatePatient = async () => {
+  const [streetName, setStreetName] =
+    useState('');
 
-    if (!name || !address || !dob || !mobile) {
-      Alert.alert('Missing Fields', 'Please fill all fields');
+  const [village, setVillage] =
+    useState('');
+
+  const [district, setDistrict] =
+    useState('');
+
+  const [state, setState] =
+    useState('');
+
+  const [zipCode, setZipCode] =
+    useState('');
+
+  const [landmark, setLandmark] =
+    useState('');
+
+  const generatePatientId = () => {
+
+    if (
+      !fullName ||
+      !dob ||
+      !mobile
+    ) {
+
+      Alert.alert(
+        'Missing Details',
+        'Please fill all fields'
+      );
+
       return;
     }
 
-    if (!/^[6-9]\d{9}$/.test(mobile)) {
-      Alert.alert('Invalid Number', 'Enter a valid 10-digit Indian mobile number');
-      return;
-    }
+    const uniqueId =
+      `ASHA-${Date.now()}`;
 
-    setLoading(true);
-    try {
-      const token = await SecureStore.getItemAsync('token');
+    setPatientId(uniqueId);
 
-      const response = await fetch(`${API_BASE_URL}/patients`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name, address, dob, mobile }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        Alert.alert('Error', data?.error || 'Failed to register patient');
-        return;
-      }
-
-      setPatientId(data.id);
-    } catch {
-      Alert.alert('Error', 'Unable to connect to server');
-    } finally {
-      setLoading(false);
-    }
+    setShowQR(true);
   };
+
+  const fullAddressPreview = [
+    [houseNo, streetName].filter(Boolean).join(', '),
+    [village, district].filter(Boolean).join(', '),
+    [state, zipCode].filter(Boolean).join(' - '),
+  ].filter(Boolean).join('\n');
 
   return (
 
     <SafeAreaView style={styles.container}>
 
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={
           styles.scrollContainer
         }
-        showsVerticalScrollIndicator={false}
       >
 
         {/* HEADER */}
 
-        <View style={styles.header}>
+        <View style={styles.headerRow}>
 
           <TouchableOpacity
             style={styles.backButton}
@@ -120,7 +127,7 @@ export default function AddPatientScreen() {
 
         <View style={styles.formCard}>
 
-          {/* NAME */}
+          {/* FULL NAME */}
 
           <Text style={styles.label}>
             Full Name
@@ -129,8 +136,9 @@ export default function AddPatientScreen() {
           <TextInput
             style={styles.input}
             placeholder="Enter patient name"
-            value={name}
-            onChangeText={setName}
+            placeholderTextColor="#9CA3AF"
+            value={fullName}
+            onChangeText={setFullName}
           />
 
           {/* ADDRESS */}
@@ -139,12 +147,128 @@ export default function AddPatientScreen() {
             Address
           </Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Enter address"
-            value={address}
-            onChangeText={setAddress}
-          />
+          <View style={styles.addressContainer}>
+
+            {/* HOUSE NO */}
+
+            <View style={styles.halfInputWrapper}>
+
+              <TextInput
+                style={styles.halfInput}
+                placeholder="House No"
+                placeholderTextColor="#9CA3AF"
+                value={houseNo}
+                onChangeText={setHouseNo}
+              />
+
+            </View>
+
+            {/* STREET */}
+
+            <View style={styles.halfInputWrapper}>
+
+              <TextInput
+                style={styles.halfInput}
+                placeholder="Street Name"
+                placeholderTextColor="#9CA3AF"
+                value={streetName}
+                onChangeText={setStreetName}
+              />
+
+            </View>
+
+            {/* VILLAGE */}
+
+            <View style={styles.halfInputWrapper}>
+
+              <TextInput
+                style={styles.halfInput}
+                placeholder="Village"
+                placeholderTextColor="#9CA3AF"
+                value={village}
+                onChangeText={setVillage}
+              />
+
+            </View>
+
+            {/* DISTRICT */}
+
+            <View style={styles.halfInputWrapper}>
+
+              <TextInput
+                style={styles.halfInput}
+                placeholder="District"
+                placeholderTextColor="#9CA3AF"
+                value={district}
+                onChangeText={setDistrict}
+              />
+
+            </View>
+
+            {/* STATE */}
+
+            <View style={styles.halfInputWrapper}>
+
+              <TextInput
+                style={styles.halfInput}
+                placeholder="State"
+                placeholderTextColor="#9CA3AF"
+                value={state}
+                onChangeText={setState}
+              />
+
+            </View>
+
+            {/* ZIP CODE */}
+
+            <View style={styles.halfInputWrapper}>
+
+              <TextInput
+                style={styles.halfInput}
+                placeholder="ZIP Code"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="number-pad"
+                maxLength={6}
+                value={zipCode}
+                onChangeText={(text) => {
+
+                  setZipCode(text);
+
+                  // DEMO AUTO FILL
+
+                  if (text === '570001') {
+
+                    setVillage('Mysore');
+
+                    setDistrict('Mysuru');
+
+                    setState('Karnataka');
+
+                  }
+
+                }}
+              />
+
+            </View>
+
+            {/* FULL ADDRESS PREVIEW */}
+
+            <View style={styles.fullWidthWrapper}>
+
+              <TextInput
+                style={styles.fullWidthInput}
+                placeholder="Full Address Preview"
+                placeholderTextColor="#9CA3AF"
+                multiline
+                editable={false}
+                selectTextOnFocus={false}
+                showSoftInputOnFocus={false}
+                value={fullAddressPreview}
+              />
+
+            </View>
+
+          </View>
 
           {/* DATE OF BIRTH */}
 
@@ -152,104 +276,31 @@ export default function AddPatientScreen() {
             Date of Birth
           </Text>
 
-          <View style={styles.dobContainer}>
+          <View style={styles.dateInputWrapper}>
 
             <TextInput
-              style={styles.dobInput}
+              style={styles.dateInput}
               placeholder="DD-MM-YYYY"
-              value={dob}
-              onChangeText={(text) => {
-
-                let cleaned =
-                  text.replace(/[^0-9]/g, '');
-
-                if (cleaned.length > 8) {
-                  cleaned = cleaned.slice(0, 8);
-                }
-
-                let formatted = cleaned;
-
-                if (cleaned.length > 2) {
-                  formatted =
-                    cleaned.slice(0, 2) +
-                    '-' +
-                    cleaned.slice(2);
-                }
-
-                if (cleaned.length > 4) {
-                  formatted =
-                    cleaned.slice(0, 2) +
-                    '-' +
-                    cleaned.slice(2, 4) +
-                    '-' +
-                    cleaned.slice(4);
-                }
-
-                setDob(formatted);
-              }}
-              keyboardType="number-pad"
               placeholderTextColor="#9CA3AF"
+              value={dob}
+              onChangeText={setDob}
             />
 
-            <TouchableOpacity
-              style={styles.calendarButton}
-              onPress={() => setShowPicker(true)}
-            >
-
-              <Ionicons
-                name="calendar-outline"
-                size={22}
-                color="#19a38c"
-              />
-
-            </TouchableOpacity>
+            <Ionicons
+              name="calendar-outline"
+              size={22}
+              color="#19a38c"
+            />
 
           </View>
 
-          {showPicker && (
-
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display="default"
-              maximumDate={new Date()}
-              onChange={(event, selectedDate) => {
-
-                setShowPicker(false);
-
-                if (selectedDate) {
-
-                  setDate(selectedDate);
-
-                  const day =
-                    String(
-                      selectedDate.getDate()
-                    ).padStart(2, '0');
-
-                  const month =
-                    String(
-                      selectedDate.getMonth() + 1
-                    ).padStart(2, '0');
-
-                  const year =
-                    selectedDate.getFullYear();
-
-                  setDob(
-                    `${day}-${month}-${year}`
-                  );
-                }
-              }}
-            />
-
-          )}
-
-          {/* MOBILE NUMBER */}
+          {/* MOBILE */}
 
           <Text style={styles.label}>
             Mobile Number
           </Text>
 
-          <View style={styles.mobileContainer}>
+          <View style={styles.mobileWrapper}>
 
             <Text style={styles.countryCode}>
               +91
@@ -258,16 +309,11 @@ export default function AddPatientScreen() {
             <TextInput
               style={styles.mobileInput}
               placeholder="Enter mobile number"
+              placeholderTextColor="#9CA3AF"
               keyboardType="number-pad"
-              value={mobile}
               maxLength={10}
-              onChangeText={(text) => {
-
-                const cleaned =
-                  text.replace(/[^0-9]/g, '');
-
-                setMobile(cleaned);
-              }}
+              value={mobile}
+              onChangeText={setMobile}
             />
 
           </View>
@@ -275,36 +321,33 @@ export default function AddPatientScreen() {
           {/* BUTTON */}
 
           <TouchableOpacity
-            style={[styles.generateButton, loading && { opacity: 0.7 }]}
-            onPress={generatePatient}
-            disabled={loading}
+            style={styles.generateButton}
+            onPress={generatePatientId}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.generateText}>
-                Generate Patient ID
-              </Text>
-            )}
+
+            <Text style={styles.generateButtonText}>
+              Generate Patient ID
+            </Text>
+
           </TouchableOpacity>
 
         </View>
 
-        {/* QR SECTION */}
+        {/* QR CARD */}
 
-        {patientId ? (
+        {showQR && (
 
           <View style={styles.qrCard}>
 
             <Text style={styles.qrTitle}>
-              Patient Registered
+              Patient Health ID
             </Text>
 
             <Text style={styles.patientId}>
               {patientId}
             </Text>
 
-            <View style={styles.qrContainer}>
+            <View style={styles.qrWrapper}>
 
               {/* @ts-ignore */}
 
@@ -315,14 +358,9 @@ export default function AddPatientScreen() {
 
             </View>
 
-            <Text style={styles.qrInfo}>
-              Scan this QR to retrieve
-              patient details later
-            </Text>
-
           </View>
 
-        ) : null}
+        )}
 
       </ScrollView>
 
@@ -343,16 +381,16 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  header: {
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 28,
   },
 
   backButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -360,7 +398,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 30,
+    fontSize: 34,
     fontWeight: '700',
     color: '#111827',
   },
@@ -369,13 +407,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 30,
     padding: 22,
-    marginBottom: 30,
   },
 
   label: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
+    color: '#111827',
     marginBottom: 10,
     marginTop: 12,
   },
@@ -386,38 +423,72 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 16,
     fontSize: 15,
+    color: '#111827',
   },
 
-  dobContainer: {
+  addressContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+
+  halfInputWrapper: {
+    width: '48%',
+    marginBottom: 16,
+  },
+
+  halfInput: {
     backgroundColor: '#F3F4F6',
     borderRadius: 18,
     paddingHorizontal: 18,
+    paddingVertical: 16,
+    fontSize: 15,
+    color: '#111827',
   },
 
-  dobInput: {
+  fullWidthWrapper: {
+    width: '100%',
+    marginTop: 4,
+  },
+
+  fullWidthInput: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    fontSize: 15,
+    color: '#111827',
+    minHeight: 70,
+    textAlignVertical: 'top',
+  },
+
+  dateInputWrapper: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  dateInput: {
     flex: 1,
     paddingVertical: 16,
     fontSize: 15,
     color: '#111827',
   },
 
-  calendarButton: {
-    paddingLeft: 12,
-  },
-
-  mobileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  mobileWrapper: {
     backgroundColor: '#F3F4F6',
     borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 18,
   },
 
   countryCode: {
-    fontSize: 15,
-    fontWeight: '400',
+    fontSize: 16,
     color: '#6B7280',
     marginRight: 10,
   },
@@ -432,15 +503,15 @@ const styles = StyleSheet.create({
 
   generateButton: {
     backgroundColor: '#19a38c',
+    borderRadius: 20,
     paddingVertical: 18,
-    borderRadius: 22,
     alignItems: 'center',
     marginTop: 28,
   },
 
-  generateText: {
+  generateButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
   },
 
@@ -448,8 +519,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 30,
     padding: 24,
+    marginTop: 24,
     alignItems: 'center',
-    marginBottom: 40,
   },
 
   qrTitle: {
@@ -460,24 +531,13 @@ const styles = StyleSheet.create({
 
   patientId: {
     marginTop: 10,
+    fontSize: 16,
     color: '#19a38c',
-    fontSize: 18,
     fontWeight: '700',
   },
 
-  qrContainer: {
-    marginTop: 26,
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-  },
-
-  qrInfo: {
-    marginTop: 20,
-    textAlign: 'center',
-    color: '#6B7280',
-    fontSize: 15,
-    lineHeight: 22,
+  qrWrapper: {
+    marginTop: 24,
   },
 
 });
