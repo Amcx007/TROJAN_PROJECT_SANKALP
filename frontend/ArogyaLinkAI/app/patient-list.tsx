@@ -17,6 +17,7 @@ import {
   Ionicons,
 } from '@expo/vector-icons';
 
+import { router } from 'expo-router';
 import * as Print from 'expo-print';
 import * as SecureStore from 'expo-secure-store';
 import QRCode from 'qrcode';
@@ -170,9 +171,24 @@ export default function PatientDetailsScreen() {
 
         {/* HEADER */}
 
-        <Text style={styles.title}>
-          Patient Details
-        </Text>
+        <View style={styles.headerRow}>
+
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color="#111827"
+            />
+          </TouchableOpacity>
+
+          <Text style={styles.headerTitle}>
+            Patient Details
+          </Text>
+
+        </View>
 
         {/* FILTERS */}
 
@@ -444,11 +460,26 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  title: {
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+
+  backButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+
+  headerTitle: {
     fontSize: 34,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 24,
   },
 
   filterCard: {
