@@ -1,5 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 
+import { useColorScheme } from 'react-native';
+import { Colors } from '../constants/theme';
 import {
   View,
   Text,
@@ -37,12 +40,21 @@ type PatientRecord = {
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function PatientDetailsScreen() {
+  const { t } = useTranslation();
 
-  const [searchName, setSearchName] =
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme as keyof typeof Colors];
+  const styles = createStyles(colors);
+
+
+  const [searchQuery, setSearchQuery] =
     useState('');
 
-  const [searchCity, setSearchCity] =
-    useState('');
+  const [filterType, setFilterType] =
+    useState<'name' | 'village' | 'risk'>('name');
+
+  const [showFilterDropdown, setShowFilterDropdown] =
+    useState(false);
 
   const [selectedPatient, setSelectedPatient] =
     useState<PatientRecord | null>(null);
@@ -96,23 +108,18 @@ export default function PatientDetailsScreen() {
 
   const filteredPatients =
     patients.filter((patient) => {
+      const query = searchQuery.toLowerCase();
+      if (!query) return true;
 
-      const matchesName =
-        patient.name
-          .toLowerCase()
-          .includes(
-            searchName.toLowerCase()
-          );
+      if (filterType === 'name') {
+        return patient.name.toLowerCase().includes(query);
+      } else if (filterType === 'village') {
+        return patient.address.toLowerCase().includes(query);
+      } else if (filterType === 'risk') {
+        return patient.risk.toLowerCase().includes(query);
+      }
 
-      const matchesCity =
-        patient.address
-          .toLowerCase()
-          .includes(
-            searchCity.toLowerCase()
-          );
-
-      return matchesName &&
-        matchesCity;
+      return true;
     });
 
   const printPatientCard = async (patient: PatientRecord) => {
@@ -180,7 +187,7 @@ export default function PatientDetailsScreen() {
             <Ionicons
               name="arrow-back"
               size={24}
-              color="#111827"
+              color={colors.text}
             />
           </TouchableOpacity>
 
@@ -199,36 +206,48 @@ export default function PatientDetailsScreen() {
             <Ionicons
               name="search-outline"
               size={20}
-              color="#6B7280"
+              color={colors.textMuted}
             />
 
             <TextInput
               style={styles.searchInput}
-              placeholder="Search by patient name"
-              placeholderTextColor="#9CA3AF"
-              value={searchName}
-              onChangeText={setSearchName}
+              placeholder={t(`patient_list.search_${filterType}` as any) || `Search by ${filterType}`}
+              placeholderTextColor={colors.textMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
+
+            <TouchableOpacity onPress={() => setShowFilterDropdown(!showFilterDropdown)}>
+              <Ionicons
+                name="filter"
+                size={22}
+                color={colors.tint}
+              />
+            </TouchableOpacity>
 
           </View>
 
-          <View style={styles.searchRow}>
-
-            <Ionicons
-              name="location-outline"
-              size={20}
-              color="#6B7280"
-            />
-
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Filter by address"
-              placeholderTextColor="#9CA3AF"
-              value={searchCity}
-              onChangeText={setSearchCity}
-            />
-
-          </View>
+          {showFilterDropdown && (
+            <View style={styles.dropdown}>
+              {['name', 'village', 'risk'].map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setFilterType(type as any);
+                    setShowFilterDropdown(false);
+                  }}
+                >
+                  <Text style={[styles.dropdownText, filterType === type && styles.dropdownTextActive]}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Text>
+                  {filterType === type && (
+                    <Ionicons name="checkmark" size={18} color={colors.tint} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
         </View>
 
@@ -238,7 +257,7 @@ export default function PatientDetailsScreen() {
 
           <View style={styles.loadingCard}>
 
-            <ActivityIndicator color="#19a38c" />
+            <ActivityIndicator color={colors.tint} />
 
             <Text style={styles.loadingText}>
               Loading saved patients...
@@ -271,7 +290,7 @@ export default function PatientDetailsScreen() {
               </Text>
 
               <Text style={styles.patientInfo}>
-                {patient.address || 'No address saved'}
+                {patient.address || t('patient_list.no_address')}
               </Text>
 
               <Text style={styles.patientId}>
@@ -307,7 +326,7 @@ export default function PatientDetailsScreen() {
                 <Ionicons
                   name="print-outline"
                   size={18}
-                  color="#fff"
+                  color={colors.textInverse}
                 />
 
               </TouchableOpacity>
@@ -342,7 +361,7 @@ export default function PatientDetailsScreen() {
               <Ionicons
                 name="close"
                 size={26}
-                color="#111827"
+                color={colors.text}
               />
 
             </TouchableOpacity>
@@ -351,9 +370,10 @@ export default function PatientDetailsScreen() {
 
               <>
 
-                <Text style={styles.cardHeader}>
-                  ASHA+
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center' }}>
+                  <Text style={styles.cardHeader}>Asha</Text>
+                  <Text style={{ color: colors.tint, fontSize: 18, fontWeight: '700', marginTop: 2 }}>+</Text>
+                </View>
 
                 <Text style={styles.cardSubHeader}>
                   Community Health Card
@@ -382,7 +402,7 @@ export default function PatientDetailsScreen() {
                 </Text>
 
                 <Text style={styles.cardValue}>
-                  {selectedPatient.address || 'No address saved'}
+                  {selectedPatient.address || t('patient_list.no_address')}
                 </Text>
 
                 <Text style={styles.cardLabel}>
@@ -424,7 +444,7 @@ export default function PatientDetailsScreen() {
                   <Ionicons
                     name="print-outline"
                     size={18}
-                    color="#fff"
+                    color={colors.textInverse}
                   />
 
                   <Text style={styles.modalPrintText}>
@@ -448,11 +468,11 @@ export default function PatientDetailsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#F4F7F9',
+    backgroundColor: colors.background,
   },
 
   scrollContainer: {
@@ -470,7 +490,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -479,11 +499,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
 
   filterCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 28,
     padding: 18,
     marginBottom: 24,
@@ -499,15 +519,43 @@ const styles = StyleSheet.create({
   },
 
   searchInput: {
+    color: colors.text,
     flex: 1,
     paddingVertical: 16,
     paddingLeft: 10,
     fontSize: 15,
-    color: '#111827',
+  },
+
+  dropdown: {
+    marginTop: 8,
+    backgroundColor: colors.background,
+    borderRadius: 16,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+
+  dropdownText: {
+    fontSize: 15,
+    color: colors.text,
+  },
+
+  dropdownTextActive: {
+    color: colors.tint,
+    fontWeight: '700',
   },
 
   loadingCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 24,
     padding: 24,
     alignItems: 'center',
@@ -517,12 +565,12 @@ const styles = StyleSheet.create({
 
   loadingText: {
     marginTop: 10,
-    color: '#6B7280',
+    color: colors.textMuted,
     fontSize: 15,
   },
 
   patientCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 24,
     padding: 20,
     marginBottom: 18,
@@ -533,18 +581,18 @@ const styles = StyleSheet.create({
   patientName: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
 
   patientInfo: {
     marginTop: 6,
-    color: '#6B7280',
+    color: colors.textMuted,
     fontSize: 14,
   },
 
   patientId: {
     marginTop: 6,
-    color: '#19a38c',
+    color: colors.tint,
     fontWeight: '700',
   },
 
@@ -555,13 +603,13 @@ const styles = StyleSheet.create({
   },
 
   cardActions: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
     marginLeft: 12,
     gap: 10,
   },
 
   showButton: {
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 16,
@@ -571,19 +619,19 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#111827',
+    backgroundColor: colors.text,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   showButtonText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontWeight: '700',
   },
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -591,7 +639,7 @@ const styles = StyleSheet.create({
 
   modalCard: {
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 32,
     padding: 28,
   },
@@ -606,13 +654,13 @@ const styles = StyleSheet.create({
   cardHeader: {
     fontSize: 30,
     fontWeight: '700',
-    color: '#19a38c',
+    color: colors.tint,
     textAlign: 'center',
   },
 
   cardSubHeader: {
     textAlign: 'center',
-    color: '#6B7280',
+    color: colors.textMuted,
     marginTop: 6,
     marginBottom: 22,
   },
@@ -624,7 +672,7 @@ const styles = StyleSheet.create({
   },
 
   cardLabel: {
-    color: '#6B7280',
+    color: colors.textMuted,
     marginTop: 12,
     fontSize: 13,
   },
@@ -632,7 +680,7 @@ const styles = StyleSheet.create({
   cardValue: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
     marginTop: 4,
   },
 
@@ -640,7 +688,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 18,
     fontWeight: '700',
-    color: '#19a38c',
+    color: colors.tint,
   },
 
   qrWrapper: {
@@ -651,23 +699,24 @@ const styles = StyleSheet.create({
   footerText: {
     textAlign: 'center',
     marginTop: 24,
-    color: '#6B7280',
+    color: colors.textMuted,
     fontWeight: '600',
   },
 
   modalPrintButton: {
     marginTop: 20,
-    backgroundColor: '#111827',
+    backgroundColor: colors.text,
     borderRadius: 18,
     paddingVertical: 14,
-    paddingHorizontal: 18,
+    paddingHorizontal: 28,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
   },
 
   modalPrintText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontWeight: '700',
     marginLeft: 10,
   },

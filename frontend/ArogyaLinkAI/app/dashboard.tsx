@@ -1,7 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { useNetInfo } from '@react-native-community/netinfo';
 import * as SecureStore from 'expo-secure-store';
+import { useColorScheme } from 'react-native';
+import { Colors } from '../constants/theme';
+
 import {
   View,
   Text,
@@ -20,24 +24,37 @@ import {
 } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
+  const { t } = useTranslation();
+
+
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme as keyof typeof Colors];
+  const styles = createStyles(colors);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [displayName, setDisplayName] = useState('ASHA Worker');
+
   const netInfo = useNetInfo();
   const isOnline = netInfo.isConnected === true;
 
   useEffect(() => {
+
     let isMounted = true;
 
     const loadDisplayName = async () => {
+
       try {
+
         const storedName = await SecureStore.getItemAsync('username');
+
         if (isMounted && storedName?.trim()) {
           setDisplayName(storedName.trim());
         }
+
       } catch {
         // Keep fallback label when secure storage read fails.
       }
+
     };
 
     loadDisplayName();
@@ -45,22 +62,27 @@ export default function DashboardScreen() {
     return () => {
       isMounted = false;
     };
-  }, []);
 
-  
+  }, []);
 
   return (
 
     <SafeAreaView style={styles.container}>
 
-      
-
       {/* SIDE DRAWER */}
 
       {menuOpen && (
 
-        <Pressable style={styles.drawerOverlay} onPress={() => setMenuOpen(false)}>
-          <Pressable onPress={() => {}} style={styles.drawerPressable}>
+        <Pressable
+          style={styles.drawerOverlay}
+          onPress={() => setMenuOpen(false)}
+        >
+
+          <Pressable
+            onPress={() => {}}
+            style={styles.drawerPressable}
+          >
+
             <View style={styles.drawerMenu}>
 
               <TouchableOpacity
@@ -70,7 +92,7 @@ export default function DashboardScreen() {
                 <Ionicons
                   name="close"
                   size={30}
-                  color="#fff"
+                  color={colors.textInverse}
                 />
               </TouchableOpacity>
 
@@ -82,6 +104,8 @@ export default function DashboardScreen() {
                 Community Health Worker
               </Text>
 
+              {/* Scheduling */}
+
               <TouchableOpacity
                 style={styles.drawerItem}
                 onPress={() => {
@@ -92,7 +116,7 @@ export default function DashboardScreen() {
                 <Ionicons
                   name="calendar-outline"
                   size={22}
-                  color="#fff"
+                  color={colors.textInverse}
                 />
 
                 <Text style={styles.drawerText}>
@@ -100,17 +124,7 @@ export default function DashboardScreen() {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.drawerItem}>
-                <Ionicons
-                  name="warning-outline"
-                  size={22}
-                  color="#fff"
-                />
-
-                <Text style={styles.drawerText}>
-                  Critical Alerts
-                </Text>
-              </TouchableOpacity>
+              {/* Patient Details */}
 
               <TouchableOpacity
                 style={styles.drawerItem}
@@ -122,7 +136,7 @@ export default function DashboardScreen() {
                 <Ionicons
                   name="people-outline"
                   size={22}
-                  color="#fff"
+                  color={colors.textInverse}
                 />
 
                 <Text style={styles.drawerText}>
@@ -130,12 +144,38 @@ export default function DashboardScreen() {
                 </Text>
               </TouchableOpacity>
 
+              {/* LOGOUT */}
+
+              <TouchableOpacity
+                style={styles.logoutDrawerButton}
+                onPress={async () => {
+
+                  await SecureStore.deleteItemAsync('username');
+
+                  setMenuOpen(false);
+
+                  router.replace('/');
+
+                }}
+              >
+                <Ionicons
+                  name="log-out-outline"
+                  size={22}
+                  color={colors.textInverse}
+                />
+
+                <Text style={styles.drawerText}>
+                  {t('dashboard.logout')}
+                </Text>
+              </TouchableOpacity>
+
             </View>
+
           </Pressable>
+
         </Pressable>
 
       )}
-
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -155,7 +195,7 @@ export default function DashboardScreen() {
               <Ionicons
                 name="menu"
                 size={22}
-                color="#111827"
+                color={colors.text}
               />
             </TouchableOpacity>
 
@@ -164,21 +204,28 @@ export default function DashboardScreen() {
             <TouchableOpacity style={styles.cloudButton}>
 
               <Ionicons
-                name={isOnline ? 'cloud-done-outline' : 'cloud-offline-outline'}
+                name={isOnline
+                  ? 'cloud-done-outline'
+                  : 'cloud-offline-outline'}
                 size={22}
-                color={isOnline ? '#16A34A' : '#F97316'}
+                color={isOnline
+                  ? '#16A34A'
+                  : '#F97316'}
               />
 
             </TouchableOpacity>
 
             {/* PROFILE */}
 
-            <TouchableOpacity style={styles.profileCircle}>
+            <TouchableOpacity
+              style={styles.profileCircle}
+              onPress={() => router.push('/profile')}
+            >
 
               <Ionicons
                 name="person"
                 size={22}
-                color="#fff"
+                color={colors.textInverse}
               />
 
             </TouchableOpacity>
@@ -203,9 +250,10 @@ export default function DashboardScreen() {
 
         <View style={styles.heroCard}>
 
-          <Text style={styles.heroTitle}>
-            ASHA+
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+            <Text style={styles.heroTitle}>Asha</Text>
+            <Text style={{ color: '#FFFDD0', fontSize: 18, fontWeight: '700', marginTop: 2 }}>+</Text>
+          </View>
 
           <Text style={styles.heroSubtitle}>
             Rural Healthcare Dashboard
@@ -217,7 +265,7 @@ export default function DashboardScreen() {
               <Ionicons
                 name="people-outline"
                 size={18}
-                color="#D1FAE5"
+                color={colors.iconBgGreen}
               />
 
               <Text style={styles.heroStatNumber}>
@@ -233,7 +281,7 @@ export default function DashboardScreen() {
               <Ionicons
                 name="warning-outline"
                 size={18}
-                color="#D1FAE5"
+                color={colors.iconBgGreen}
               />
 
               <Text style={styles.heroStatNumber}>
@@ -241,7 +289,7 @@ export default function DashboardScreen() {
               </Text>
 
               <Text style={styles.heroStatLabel}>
-                High Risk
+                {t('dashboard.high_risk')}
               </Text>
             </View>
 
@@ -249,7 +297,7 @@ export default function DashboardScreen() {
               <Ionicons
                 name="calendar-outline"
                 size={18}
-                color="#D1FAE5"
+                color={colors.iconBgGreen}
               />
 
               <Text style={styles.heroStatNumber}>
@@ -257,7 +305,7 @@ export default function DashboardScreen() {
               </Text>
 
               <Text style={styles.heroStatLabel}>
-                Visits
+                {t('dashboard.visits')}
               </Text>
             </View>
 
@@ -265,7 +313,7 @@ export default function DashboardScreen() {
               <Ionicons
                 name="sync-outline"
                 size={18}
-                color="#D1FAE5"
+                color={colors.iconBgGreen}
               />
 
               <Text style={styles.heroStatNumber}>
@@ -295,7 +343,7 @@ export default function DashboardScreen() {
               <FontAwesome5
                 name="heartbeat"
                 size={18}
-                color="#DC2626"
+                color={colors.danger}
               />
             </View>
 
@@ -319,7 +367,7 @@ export default function DashboardScreen() {
               <MaterialCommunityIcons
                 name="diabetes"
                 size={20}
-                color="#EA580C"
+                color={colors.warning}
               />
             </View>
 
@@ -343,7 +391,7 @@ export default function DashboardScreen() {
               <Ionicons
                 name="warning-outline"
                 size={20}
-                color="#2563EB"
+                color={colors.primary}
               />
             </View>
 
@@ -367,7 +415,7 @@ export default function DashboardScreen() {
               <Ionicons
                 name="checkmark-done-outline"
                 size={20}
-                color="#16A34A"
+                color={colors.success}
               />
             </View>
 
@@ -390,12 +438,10 @@ export default function DashboardScreen() {
         {/* QUICK ACTIONS */}
 
         <Text style={styles.sectionTitle}>
-          Quick Actions
+          {t('dashboard.quick_actions')}
         </Text>
 
         <View style={styles.quickGrid}>
-
-          {/* ADD PATIENT */}
 
           <TouchableOpacity
             style={styles.quickCard}
@@ -404,24 +450,22 @@ export default function DashboardScreen() {
             <Ionicons
               name="person-add-outline"
               size={24}
-              color="#7C3AED"
+              color={colors.primary}
             />
 
             <Text style={styles.quickText}>
-              Add Patient
+              {t('dashboard.add_patient')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.quickCard}
-            onPress={() =>
-              router.push('/patient-survey')
-            }
+            onPress={() => router.push('/patient-survey')}
           >
             <MaterialCommunityIcons
               name="clipboard-text-outline"
               size={24}
-              color="#19a38c"
+              color={colors.tint}
             />
 
             <Text style={styles.quickText}>
@@ -433,28 +477,26 @@ export default function DashboardScreen() {
             <Ionicons
               name="sync-outline"
               size={24}
-              color="#DC2626"
+              color={colors.danger}
             />
 
             <Text style={styles.quickText}>
-              Sync Data
+              {t('dashboard.sync')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.quickCard}
-            onPress={() =>
-              router.push('/visits')
-            }
+            onPress={() => router.push('/visits')}
           >
             <Ionicons
               name="home-outline"
               size={24}
-              color="#2563EB"
+              color={colors.primary}
             />
 
             <Text style={styles.quickText}>
-              Home Visits
+              Home {t('dashboard.visits')}
             </Text>
           </TouchableOpacity>
 
@@ -463,7 +505,7 @@ export default function DashboardScreen() {
         {/* RECENT ACTIVITY */}
 
         <Text style={styles.sectionTitle}>
-          Recent Activity
+          {t('dashboard.recent_activity')}
         </Text>
 
         <View style={styles.activityCard}>
@@ -473,7 +515,7 @@ export default function DashboardScreen() {
             <Ionicons
               name="checkmark-circle"
               size={18}
-              color="#16A34A"
+              color={colors.success}
             />
 
             <Text style={styles.activityText}>
@@ -487,7 +529,7 @@ export default function DashboardScreen() {
             <Ionicons
               name="person-add"
               size={18}
-              color="#2563EB"
+              color={colors.primary}
             />
 
             <Text style={styles.activityText}>
@@ -501,7 +543,7 @@ export default function DashboardScreen() {
             <Ionicons
               name="warning"
               size={18}
-              color="#DC2626"
+              color={colors.danger}
             />
 
             <Text style={styles.activityText}>
@@ -519,11 +561,11 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#F4F7F9',
+    backgroundColor: colors.background,
   },
 
   scrollContainer: {
@@ -537,7 +579,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: colors.overlay,
     zIndex: 999,
     flexDirection: 'row',
   },
@@ -549,22 +591,31 @@ const styles = StyleSheet.create({
 
   drawerMenu: {
     width: '78%',
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     paddingTop: 80,
     paddingHorizontal: 24,
     borderTopRightRadius: 30,
     borderBottomRightRadius: 30,
   },
 
+  logoutDrawerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 'auto',
+    marginBottom: 40,
+    paddingVertical: 20,
+  },
+
   drawerTitle: {
-    color: '#fff',
+    color: colors.textInverse,
     fontSize: 30,
     fontWeight: '700',
     marginTop: 20,
   },
 
   drawerSubtitle: {
-    color: '#D1FAE5',
+    color: colors.textInverse,
+    opacity: 0.8,
     marginTop: 6,
     marginBottom: 40,
     fontSize: 15,
@@ -577,7 +628,7 @@ const styles = StyleSheet.create({
   },
 
   drawerText: {
-    color: '#ffffff',
+    color: colors.textInverse,
     fontSize: 18,
     marginLeft: 18,
     fontWeight: '600',
@@ -588,7 +639,6 @@ const styles = StyleSheet.create({
     top: 50,
     right: 20,
   },
-  
 
   header: {
     marginBottom: 24,
@@ -603,7 +653,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -612,7 +662,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 'auto',
@@ -623,7 +673,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -634,31 +684,32 @@ const styles = StyleSheet.create({
 
   greeting: {
     fontSize: 18,
-    color: '#6B7280',
+    color: colors.textMuted,
   },
 
   workerName: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
     marginTop: 6,
   },
 
   heroCard: {
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     borderRadius: 30,
     padding: 24,
     marginBottom: 28,
   },
 
   heroTitle: {
-    color: '#fff',
+    color: colors.textInverse,
     fontSize: 28,
     fontWeight: '700',
   },
 
   heroSubtitle: {
-    color: '#D1FAE5',
+    color: colors.textInverse,
+    opacity: 0.8,
     marginTop: 6,
     marginBottom: 24,
     fontSize: 15,
@@ -674,14 +725,15 @@ const styles = StyleSheet.create({
   },
 
   heroStatNumber: {
-    color: '#fff',
+    color: colors.textInverse,
     fontSize: 24,
     fontWeight: '700',
     marginTop: 8,
   },
 
   heroStatLabel: {
-    color: '#D1FAE5',
+    color: colors.textInverse,
+    opacity: 0.8,
     marginTop: 4,
     fontSize: 13,
   },
@@ -689,7 +741,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 18,
   },
 
@@ -702,7 +754,7 @@ const styles = StyleSheet.create({
 
   healthCard: {
     width: '48%',
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 24,
     padding: 20,
     marginBottom: 16,
@@ -712,7 +764,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.iconBgRed,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -721,7 +773,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#FFEDD5',
+    backgroundColor: colors.iconBgOrange,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -730,7 +782,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.iconBgBlue,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -739,26 +791,26 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.iconBgGreen,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   cardTitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textMuted,
     marginTop: 16,
   },
 
   cardNumber: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
     marginTop: 10,
   },
 
   cardSubText: {
-    color: '#9CA3AF',
+    color: colors.textMuted,
     marginTop: 6,
     fontSize: 14,
   },
@@ -772,7 +824,7 @@ const styles = StyleSheet.create({
 
   quickCard: {
     width: '48%',
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 24,
     paddingVertical: 28,
     alignItems: 'center',
@@ -783,11 +835,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
   },
 
   activityCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 24,
     padding: 22,
     marginBottom: 40,
@@ -801,14 +853,8 @@ const styles = StyleSheet.create({
 
   activityText: {
     marginLeft: 12,
-    color: '#374151',
+    color: colors.text,
     fontSize: 15,
   },
 
 });
-
-
-
-
-
-

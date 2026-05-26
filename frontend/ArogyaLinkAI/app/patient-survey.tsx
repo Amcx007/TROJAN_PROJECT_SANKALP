@@ -1,5 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { useColorScheme } from 'react-native';
+import { Colors } from '../constants/theme';
 import {
   View,
   Text,
@@ -29,6 +32,12 @@ type PatientRecord = {
 };
 
 export default function PatientSurveyScreen() {
+  const { t } = useTranslation();
+
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme as keyof typeof Colors];
+  const styles = createStyles(colors);
+
   const [permission, requestPermission] = useCameraPermissions();
   const [scannerVisible, setScannerVisible] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
@@ -189,7 +198,7 @@ export default function PatientSurveyScreen() {
 
         <View style={styles.scanCard}>
           <View style={styles.scanIconWrap}>
-            <Ionicons name="qr-code-outline" size={34} color="#19a38c" />
+            <Ionicons name="qr-code-outline" size={34} color={colors.tint} />
           </View>
 
           <Text style={styles.scanTitle}>Scan Patient QR</Text>
@@ -206,7 +215,7 @@ export default function PatientSurveyScreen() {
           <View style={styles.patientCard}>
             <View style={styles.patientHeader}>
               <View style={styles.avatarCircle}>
-                <Ionicons name="person" size={28} color="#fff" />
+                <Ionicons name="person" size={28} color={colors.textInverse} />
               </View>
 
               <View style={styles.patientMeta}>
@@ -229,7 +238,7 @@ export default function PatientSurveyScreen() {
             </View>
 
             <View style={styles.statusPill}>
-              <Ionicons name="checkmark-circle" size={18} color="#16A34A" />
+              <Ionicons name="checkmark-circle" size={18} color={colors.success} />
               <Text style={styles.statusText}>Patient loaded from QR</Text>
             </View>
 
@@ -303,7 +312,7 @@ export default function PatientSurveyScreen() {
         <SafeAreaView style={styles.scannerScreen}>
           <View style={styles.scannerHeader}>
             <TouchableOpacity style={styles.closeButton} onPress={() => setScannerVisible(false)}>
-              <Ionicons name="close" size={26} color="#111827" />
+              <Ionicons name="close" size={26} color={colors.text} />
             </TouchableOpacity>
 
             <Text style={styles.scannerTitle}>Scan Patient QR</Text>
@@ -320,7 +329,7 @@ export default function PatientSurveyScreen() {
               />
             ) : (
               <View style={styles.permissionCard}>
-                <Ionicons name="camera-outline" size={34} color="#19a38c" />
+                <Ionicons name="camera-outline" size={34} color={colors.tint} />
                 <Text style={styles.permissionText}>Camera permission is needed to scan QR codes.</Text>
               </View>
             )}
@@ -336,7 +345,7 @@ export default function PatientSurveyScreen() {
           <View style={styles.scannerFooter}>
             {scanLoading ? (
               <View style={styles.loadingRow}>
-                <ActivityIndicator color="#19a38c" />
+                <ActivityIndicator color={colors.tint} />
                 <Text style={styles.loadingText}>Loading patient details...</Text>
               </View>
             ) : (
@@ -349,10 +358,10 @@ export default function PatientSurveyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F7F9',
+    backgroundColor: colors.background,
   },
   scrollContainer: {
     padding: 22,
@@ -364,16 +373,16 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
   headerSubtitle: {
     marginTop: 8,
     fontSize: 15,
-    color: '#6B7280',
+    color: colors.textMuted,
     lineHeight: 22,
   },
   scanCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 30,
     padding: 28,
     alignItems: 'center',
@@ -390,29 +399,29 @@ const styles = StyleSheet.create({
   scanTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
     marginTop: 14,
   },
   scanSubtitle: {
-    color: '#6B7280',
+    color: colors.textMuted,
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 22,
     lineHeight: 22,
   },
   scanButton: {
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     borderRadius: 20,
     paddingVertical: 16,
     paddingHorizontal: 28,
   },
   scanButtonText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontWeight: '700',
     fontSize: 16,
   },
   patientCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 30,
     padding: 24,
     marginBottom: 28,
@@ -425,7 +434,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -436,11 +445,11 @@ const styles = StyleSheet.create({
   patientName: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
   patientInfo: {
     marginTop: 6,
-    color: '#6B7280',
+    color: colors.textMuted,
     fontSize: 15,
   },
   detailGrid: {
@@ -455,14 +464,14 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   detailLabel: {
-    color: '#6B7280',
+    color: colors.textMuted,
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   detailValue: {
     marginTop: 6,
-    color: '#111827',
+    color: colors.text,
     fontWeight: '700',
     fontSize: 15,
   },
@@ -489,17 +498,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#111827',
   },
   rescanButtonText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontWeight: '700',
   },
   sectionTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 18,
   },
   questionCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 24,
     padding: 22,
     marginBottom: 18,
@@ -507,7 +516,7 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
   },
   answerRow: {
     flexDirection: 'row',
@@ -522,32 +531,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   selectedYes: {
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
   },
   selectedNo: {
     backgroundColor: '#DC2626',
   },
   answerText: {
-    color: '#111827',
+    color: colors.text,
     fontWeight: '700',
   },
   selectedAnswerText: {
-    color: '#fff',
+    color: colors.textInverse,
   },
   submitButton: {
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     borderRadius: 22,
     paddingVertical: 18,
     alignItems: 'center',
     marginTop: 18,
   },
   submitText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontSize: 18,
     fontWeight: '700',
   },
   resultCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 28,
     padding: 28,
     alignItems: 'center',
@@ -556,17 +565,17 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
   resultValue: {
     fontSize: 30,
     fontWeight: '700',
-    color: '#19a38c',
+    color: colors.tint,
     marginTop: 16,
   },
   scannerScreen: {
     flex: 1,
-    backgroundColor: '#F4F7F9',
+    backgroundColor: colors.background,
   },
   scannerHeader: {
     paddingHorizontal: 22,
@@ -577,7 +586,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 18,
@@ -585,11 +594,11 @@ const styles = StyleSheet.create({
   scannerTitle: {
     fontSize: 30,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
   scannerSubtitle: {
     marginTop: 8,
-    color: '#6B7280',
+    color: colors.textMuted,
     lineHeight: 22,
   },
   cameraFrame: {
@@ -663,7 +672,7 @@ const styles = StyleSheet.create({
   },
   scannerHint: {
     textAlign: 'center',
-    color: '#6B7280',
+    color: colors.textMuted,
   },
   loadingRow: {
     flexDirection: 'row',
@@ -672,7 +681,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 10,
-    color: '#6B7280',
+    color: colors.textMuted,
     fontWeight: '600',
   },
   permissionCard: {
@@ -684,7 +693,7 @@ const styles = StyleSheet.create({
   },
   permissionText: {
     marginTop: 12,
-    color: '#fff',
+    color: colors.textInverse,
     textAlign: 'center',
     lineHeight: 22,
     fontWeight: '600',
