@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { useNetInfo } from '@react-native-community/netinfo';
+import * as SecureStore from 'expo-secure-store';
 import {
   View,
   Text,
@@ -21,8 +22,30 @@ import {
 export default function DashboardScreen() {
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [displayName, setDisplayName] = useState('ASHA Worker');
   const netInfo = useNetInfo();
   const isOnline = netInfo.isConnected === true;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDisplayName = async () => {
+      try {
+        const storedName = await SecureStore.getItemAsync('username');
+        if (isMounted && storedName?.trim()) {
+          setDisplayName(storedName.trim());
+        }
+      } catch {
+        // Keep fallback label when secure storage read fails.
+      }
+    };
+
+    loadDisplayName();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   
 
@@ -52,7 +75,7 @@ export default function DashboardScreen() {
               </TouchableOpacity>
 
               <Text style={styles.drawerTitle}>
-                ASHA Worker
+                {displayName}
               </Text>
 
               <Text style={styles.drawerSubtitle}>
@@ -169,7 +192,7 @@ export default function DashboardScreen() {
             </Text>
 
             <Text style={styles.workerName}>
-              ASHA Worker
+              {displayName}
             </Text>
 
           </View>
