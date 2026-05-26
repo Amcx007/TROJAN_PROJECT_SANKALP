@@ -39,6 +39,15 @@ type PatientRecord = {
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
+const getRiskColor = (risk: string) => {
+  switch (risk.toLowerCase()) {
+    case 'high': return '#DC2626';
+    case 'moderate': return '#D97706';
+    case 'low': return '#16A34A';
+    default: return '#6B7280';
+  }
+};
+
 export default function PatientDetailsScreen() {
   const { t } = useTranslation();
 
@@ -93,7 +102,7 @@ export default function PatientDetailsScreen() {
             address: patient.address || '',
             dob: patient.dob,
             mobile: patient.mobile,
-            risk: patient.address ? 'Saved' : 'No Address',
+            risk: patient.overall_risk || 'Not Screened',
           }))
         );
       } catch {
@@ -297,7 +306,7 @@ export default function PatientDetailsScreen() {
                 {patient.id}
               </Text>
 
-              <Text style={styles.riskText}>
+              <Text style={[styles.riskText, { color: getRiskColor(patient.risk) }]}>
                 {patient.risk}
               </Text>
 
@@ -598,7 +607,6 @@ const createStyles = (colors: any) => StyleSheet.create({
 
   riskText: {
     marginTop: 8,
-    color: '#DC2626',
     fontWeight: '600',
   },
 

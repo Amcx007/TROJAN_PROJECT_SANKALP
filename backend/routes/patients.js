@@ -12,9 +12,13 @@ router.get('/', requireAuth, async (_req, res) => {
     await ensureMobileSchema();
 
     const { rows } = await pool.query(
-      `SELECT id, full_name, address, dob, mobile, created_at
-       FROM patients
-       ORDER BY created_at DESC`
+      `SELECT p.id, p.full_name, p.address, p.dob, p.mobile, p.created_at,
+              ls.overall_risk
+       FROM patients p
+       LEFT JOIN LATERAL (
+         SELECT overall_risk FROM screenings WHERE patient_id = p.id ORDER BY created_at DESC LIMIT 1
+       ) ls ON true
+       ORDER BY p.created_at DESC`
     );
 
     return res.json(rows);

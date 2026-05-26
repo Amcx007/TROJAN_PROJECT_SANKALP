@@ -345,7 +345,7 @@ export default function AddPatientScreen() {
           <View style={styles.genderRow}>
             {[{k: 'Male', v: t('add_patient.male')}, {k: 'Female', v: t('add_patient.female')}, {k: 'Other', v: t('add_patient.other')}].map(g => (
               <TouchableOpacity
-                key={g}
+                key={g.k}
                 style={[
                   styles.genderBtn,
                   gender === g.k && styles.genderBtnActive
@@ -356,7 +356,7 @@ export default function AddPatientScreen() {
                   styles.genderBtnText,
                   gender === g.k && styles.genderBtnTextActive
                 ]}>
-                  {g}
+                  {g.v}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -535,9 +535,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
 
   input: {
-
-
-    color: colors.text,
     backgroundColor: '#F3F4F6',
     borderRadius: 18,
     paddingHorizontal: 18,
@@ -559,9 +556,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
 
   halfInput: {
-
-
-    color: colors.text,
     backgroundColor: '#F3F4F6',
     borderRadius: 18,
     paddingHorizontal: 18,
@@ -576,9 +570,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
 
   fullWidthInput: {
-
-
-    color: colors.text,
     backgroundColor: '#F3F4F6',
     borderRadius: 18,
     paddingHorizontal: 18,
@@ -631,9 +622,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
 
   dateInput: {
-
-
-    color: colors.text,
     flex: 1,
     paddingVertical: 16,
     fontSize: 15,
@@ -655,9 +643,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
 
   mobileInput: {
-
-
-    color: colors.text,
     flex: 1,
     paddingVertical: 16,
     fontSize: 16,

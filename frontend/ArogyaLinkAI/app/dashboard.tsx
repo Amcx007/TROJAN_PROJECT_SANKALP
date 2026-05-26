@@ -54,12 +54,7 @@ export default function DashboardScreen() {
 
     let isMounted = true;
 
-<<<<<<< HEAD
     const loadData = async () => {
-=======
-    const loadDisplayName = async () => {
-
->>>>>>> 7ad45b9f9d7f1e92d2336ccb284e265413341541
       try {
 
         const storedName = await SecureStore.getItemAsync('username');
@@ -72,7 +67,6 @@ export default function DashboardScreen() {
         // Keep fallback label when secure storage read fails.
       }
 
-<<<<<<< HEAD
       try {
         const token = await SecureStore.getItemAsync('token');
         if (!token || !API_BASE_URL) return;
@@ -98,8 +92,6 @@ export default function DashboardScreen() {
       } catch {
         // Keep default zeros if stats fetch fails.
       }
-=======
->>>>>>> 7ad45b9f9d7f1e92d2336ccb284e265413341541
     };
 
     loadData();
