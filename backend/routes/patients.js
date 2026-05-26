@@ -1,41 +1,15 @@
 const express = require('express');
 const pool = require('../db');
 const requireAuth = require('../middleware/auth');
+const { ensureMobileSchema, createMobileId } = require('../schema');
 
 const router = express.Router();
 
-let patientsTableReady = false;
-
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-async function ensurePatientsTable() {
-  if (patientsTableReady) {
-    return;
-  }
-
-  await pool.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS patients (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      full_name TEXT NOT NULL,
-      address TEXT NOT NULL DEFAULT '',
-      dob TEXT NOT NULL,
-      mobile TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT NOW()
-    )
-  `);
-
-  await pool.query(`ALTER TABLE patients ADD COLUMN IF NOT EXISTS address TEXT DEFAULT ''`);
-  await pool.query(`ALTER TABLE patients ALTER COLUMN address SET DEFAULT ''`);
-  await pool.query(`UPDATE patients SET address = '' WHERE address IS NULL`);
-
-  patientsTableReady = true;
-}
 
 router.get('/', requireAuth, async (_req, res) => {
   try {
-    await ensurePatientsTable();
+    await ensureMobileSchema();
 
     const { rows } = await pool.query(
       `SELECT id, full_name, address, dob, mobile, created_at
@@ -56,7 +30,7 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 
   try {
-    await ensurePatientsTable();
+    await ensureMobileSchema();
 
     const { rows } = await pool.query(
       `SELECT id, full_name, address, dob, mobile, created_at
@@ -90,14 +64,28 @@ router.post('/', requireAuth, async (req, res) => {
   }
 
   try {
-    await ensurePatientsTable();
+    await ensureMobileSchema();
 
-    const { rows } = await pool.query(
-      `INSERT INTO patients (full_name, address, dob, mobile)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, full_name, address, dob, mobile, created_at`,
-      [name, normalizedAddress, dob, mobile]
-    );
+    let rows = [];
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const id = createMobileId();
+        const result = await pool.query(
+          `INSERT INTO patients (id, full_name, address, dob, mobile)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id, full_name, address, dob, mobile, created_at`,
+          [id, name, normalizedAddress, dob, mobile]
+        );
+        rows = result.rows;
+        break;
+      } catch (err) {
+        if (err.code !== '23505' || attempt === 1) {
+          throw err;
+        }
+      }
+    }
+
     return res.status(201).json(rows[0]);
   } catch (err) {
     console.error('Create patient error', err);

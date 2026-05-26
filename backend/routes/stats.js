@@ -26,16 +26,31 @@ router.get('/', auth, async (req, res) => {
       pending = 0;
     }
 
-    // Placeholder clinical counts — to be computed later from real data
-    const hypertension = 0;
-    const critical = 0;
-    const diabetes = 0;
-    const controlled = 0;
+    let highRisk = 0, hypertension = 0, diabetes = 0, critical = 0, controlled = 0;
+    try {
+      const sr = await pool.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE overall_risk = 'High')::int AS high_risk,
+          COUNT(*) FILTER (WHERE hypertension_risk IN ('High', 'Moderate'))::int AS hypertension,
+          COUNT(*) FILTER (WHERE diabetes_risk IN ('High', 'Moderate'))::int AS diabetes,
+          COUNT(*) FILTER (WHERE overall_risk = 'High')::int AS critical,
+          COUNT(*) FILTER (WHERE overall_risk = 'Low')::int AS controlled
+        FROM screenings
+      `);
+      highRisk = sr.rows[0]?.high_risk || 0;
+      hypertension = sr.rows[0]?.hypertension || 0;
+      diabetes = sr.rows[0]?.diabetes || 0;
+      critical = sr.rows[0]?.critical || 0;
+      controlled = sr.rows[0]?.controlled || 0;
+    } catch (e) {
+      // screenings table not ready yet
+    }
 
     return res.json({
       patients,
       visits,
       pending,
+      highRisk,
       hypertension,
       critical,
       diabetes,

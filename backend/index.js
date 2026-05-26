@@ -4,6 +4,8 @@ const authRouter = require('./routes/auth');
 const statsRouter = require('./routes/stats');
 const patientsRouter = require('./routes/patients');
 const visitsRouter = require('./routes/visits');
+const screeningsRouter = require('./routes/screenings');
+const { ensureMobileSchema } = require('./schema');
 
 const app = express();
 
@@ -21,10 +23,19 @@ app.use('/auth', authRouter);
 app.use('/stats', statsRouter);
 app.use('/patients', patientsRouter);
 app.use('/visits', visitsRouter);
+app.use('/screenings', screeningsRouter);
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 
 const port = process.env.PORT || 4000;
-app.listen(port, () => {
-  console.log(`Backend running on http://localhost:${port}`);
+
+(async () => {
+  await ensureMobileSchema();
+
+  app.listen(port, () => {
+    console.log(`Backend running on http://localhost:${port}`);
+  });
+})().catch((err) => {
+  console.error('Failed to initialize mobile schema', err);
+  process.exit(1);
 });

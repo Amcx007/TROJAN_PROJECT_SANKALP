@@ -143,10 +143,6 @@ export default function AddPatientScreen() {
     setDob(formatDob(selectedDate));
   };
 
-  const handleDobDismiss = () => {
-    setShowDobPicker(false);
-  };
-
   const openDobPicker = () => {
     const initialDate = dobDate ?? new Date();
 
@@ -156,7 +152,6 @@ export default function AddPatientScreen() {
         mode: 'date',
         display: 'calendar',
         onChange: handleDobValueChange,
-        onDismiss: handleDobDismiss,
       });
 
       return;
@@ -363,9 +358,14 @@ export default function AddPatientScreen() {
             <DateTimePicker
               value={dobDate ?? new Date()}
               mode="date"
-              display="spinner"
-              onValueChange={handleDobValueChange}
-              onDismiss={handleDobDismiss}
+              display="default"
+              onChange={(_event, selectedDate) => {
+                setShowDobPicker(false);
+                if (selectedDate) {
+                  setDobDate(selectedDate);
+                  setDob(formatDob(selectedDate));
+                }
+              }}
             />
           )}
 

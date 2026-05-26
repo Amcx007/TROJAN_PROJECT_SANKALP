@@ -11,6 +11,8 @@ import {
   Pressable,
 } from 'react-native';
 
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -26,10 +28,21 @@ export default function DashboardScreen() {
   const netInfo = useNetInfo();
   const isOnline = netInfo.isConnected === true;
 
+  const [stats, setStats] = useState({
+    patients: 0,
+    highRisk: 0,
+    visits: 0,
+    pending: 0,
+    hypertension: 0,
+    diabetes: 0,
+    critical: 0,
+    controlled: 0,
+  });
+
   useEffect(() => {
     let isMounted = true;
 
-    const loadDisplayName = async () => {
+    const loadData = async () => {
       try {
         const storedName = await SecureStore.getItemAsync('username');
         if (isMounted && storedName?.trim()) {
@@ -38,9 +51,35 @@ export default function DashboardScreen() {
       } catch {
         // Keep fallback label when secure storage read fails.
       }
+
+      try {
+        const token = await SecureStore.getItemAsync('token');
+        if (!token || !API_BASE_URL) return;
+
+        const res = await fetch(`${API_BASE_URL}/stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setStats({
+              patients: data.patients ?? 0,
+              highRisk: data.highRisk ?? 0,
+              visits: data.visits ?? 0,
+              pending: data.pending ?? 0,
+              hypertension: data.hypertension ?? 0,
+              diabetes: data.diabetes ?? 0,
+              critical: data.critical ?? 0,
+              controlled: data.controlled ?? 0,
+            });
+          }
+        }
+      } catch {
+        // Keep default zeros if stats fetch fails.
+      }
     };
 
-    loadDisplayName();
+    loadData();
 
     return () => {
       isMounted = false;
@@ -221,7 +260,7 @@ export default function DashboardScreen() {
               />
 
               <Text style={styles.heroStatNumber}>
-                128
+                {stats.patients}
               </Text>
 
               <Text style={styles.heroStatLabel}>
@@ -237,7 +276,7 @@ export default function DashboardScreen() {
               />
 
               <Text style={styles.heroStatNumber}>
-                12
+                {stats.highRisk}
               </Text>
 
               <Text style={styles.heroStatLabel}>
@@ -253,7 +292,7 @@ export default function DashboardScreen() {
               />
 
               <Text style={styles.heroStatNumber}>
-                18
+                {stats.visits}
               </Text>
 
               <Text style={styles.heroStatLabel}>
@@ -269,7 +308,7 @@ export default function DashboardScreen() {
               />
 
               <Text style={styles.heroStatNumber}>
-                5
+                {stats.pending}
               </Text>
 
               <Text style={styles.heroStatLabel}>
@@ -304,11 +343,11 @@ export default function DashboardScreen() {
             </Text>
 
             <Text style={styles.cardNumber}>
-              31
+              {stats.hypertension}
             </Text>
 
             <Text style={styles.cardSubText}>
-              8 uncontrolled
+              risk cases
             </Text>
 
           </View>
@@ -328,11 +367,11 @@ export default function DashboardScreen() {
             </Text>
 
             <Text style={styles.cardNumber}>
-              42
+              {stats.diabetes}
             </Text>
 
             <Text style={styles.cardSubText}>
-              5 sugar alerts
+              risk cases
             </Text>
 
           </View>
@@ -352,7 +391,7 @@ export default function DashboardScreen() {
             </Text>
 
             <Text style={styles.cardNumber}>
-              7
+              {stats.critical}
             </Text>
 
             <Text style={styles.cardSubText}>
@@ -376,7 +415,7 @@ export default function DashboardScreen() {
             </Text>
 
             <Text style={styles.cardNumber}>
-              64
+              {stats.controlled}
             </Text>
 
             <Text style={styles.cardSubText}>

@@ -9,10 +9,10 @@ import {
   Modal,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
@@ -28,28 +28,81 @@ type PatientRecord = {
   created_at?: string;
 };
 
+type SurveyResult = {
+  diabetesRisk: string;
+  diabetesProbability: number;
+  hypertensionRisk: string;
+  hypertensionProbability: number;
+  overallRisk: string;
+  overallProbability: number;
+  explainability: {
+    diabetes_factors: { feature: string; impact: number }[];
+    hypertension_factors: { feature: string; impact: number }[];
+  };
+  riskReasons: string[];
+};
+
+type SurveyFields = {
+  age: string;
+  bmi: string;
+  family_history: string;
+  exercise: string;
+  sugary_food: string;
+  smoking: string;
+  thirst: string;
+  headaches: string;
+  sleep: string;
+  stress: string;
+};
+
+const INITIAL_SURVEY: SurveyFields = {
+  age: '45',
+  bmi: '24.5',
+  family_history: '0',
+  exercise: '2',
+  sugary_food: '2',
+  smoking: '0',
+  thirst: '0',
+  headaches: '0',
+  sleep: '7',
+  stress: '1',
+};
+
+const SURVEY_FIELDS: {
+  key: keyof SurveyFields;
+  label: string;
+  helper: string;
+  keyboardType?: 'default' | 'numeric' | 'number-pad';
+}[] = [
+  { key: 'age', label: 'Age', helper: 'Years', keyboardType: 'number-pad' },
+  { key: 'bmi', label: 'BMI', helper: 'Body mass index', keyboardType: 'numeric' },
+  { key: 'family_history', label: 'Family History', helper: '0 = No, 1 = Yes', keyboardType: 'number-pad' },
+  { key: 'exercise', label: 'Exercise', helper: '0 to 4 times/week', keyboardType: 'number-pad' },
+  { key: 'sugary_food', label: 'Sugary Food Intake', helper: '0 to 4 scale', keyboardType: 'number-pad' },
+  { key: 'smoking', label: 'Smoking', helper: '0 = No, 1 = Yes', keyboardType: 'number-pad' },
+  { key: 'thirst', label: 'Excessive Thirst', helper: '0 = No, 1 = Yes', keyboardType: 'number-pad' },
+  { key: 'headaches', label: 'Headaches / Dizziness', helper: '0 = No, 1 = Yes', keyboardType: 'number-pad' },
+  { key: 'sleep', label: 'Sleep Duration', helper: 'Hours per night', keyboardType: 'number-pad' },
+  { key: 'stress', label: 'Stress', helper: '0 to 3 scale', keyboardType: 'number-pad' },
+];
+
+function getRiskClass(risk: string) {
+  const normalized = String(risk || '').toLowerCase();
+  if (normalized === 'high') return styles.highRisk;
+  if (normalized === 'moderate') return styles.moderateRisk;
+  return styles.lowRisk;
+}
+
 export default function PatientSurveyScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scannerVisible, setScannerVisible] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [patient, setPatient] = useState<PatientRecord | null>(null);
   const [surveySubmitted, setSurveySubmitted] = useState(false);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [surveyResult, setSurveyResult] = useState<SurveyResult | null>(null);
+  const [answers, setAnswers] = useState<SurveyFields>(INITIAL_SURVEY);
   const [cameraLocked, setCameraLocked] = useState(false);
-
-  const questions = useMemo(
-    () => [
-      'Do you have fever?',
-      'Do you have cough?',
-      'Do you have diabetes history?',
-      'Do you have hypertension?',
-      'Do you smoke?',
-      'Do you consume alcohol?',
-      'Any breathing difficulty?',
-      'Are medications taken regularly?',
-    ],
-    []
-  );
 
   useEffect(() => {
     if (!patient) {
@@ -57,51 +110,25 @@ export default function PatientSurveyScreen() {
     }
 
     setSurveySubmitted(false);
+    setSurveyResult(null);
   }, [patient]);
 
-  const handleAnswer = (question: string, answer: string) => {
-    setAnswers((prevAnswers) => ({
-      ...prevAnswers,
-      [question]: answer,
-    }));
-
-    setSurveySubmitted(false);
-  };
-
-  const calculateRisk = () => {
-    let riskScore = 0;
-
-    Object.values(answers).forEach((answer) => {
-      if (answer === 'Yes') {
-        riskScore += 1;
-      }
-    });
-
-    if (riskScore >= 5) {
-      return 'High Risk';
-    }
-
-    if (riskScore >= 3) {
-      return 'Moderate Risk';
-    }
-
-    return 'Low Risk';
+  const updateAnswer = (field: keyof SurveyFields, value: string) => {
+    setAnswers((prev) => ({ ...prev, [field]: value }));
   };
 
   const resetSurvey = () => {
     setPatient(null);
-    setAnswers({});
+    setAnswers(INITIAL_SURVEY);
     setSurveySubmitted(false);
+    setSurveyResult(null);
     setScanLoading(false);
     setCameraLocked(false);
   };
 
   const normalizeQrValue = (value: string) => {
     const trimmed = value.trim();
-    const uuidMatch = trimmed.match(
-      /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i
-    );
-
+    const uuidMatch = trimmed.match(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
     return uuidMatch ? uuidMatch[0] : trimmed;
   };
 
@@ -113,9 +140,7 @@ export default function PatientSurveyScreen() {
     }
 
     const response = await fetch(`${API_BASE_URL}/patients/${encodeURIComponent(qrValue)}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     if (response.status === 401) {
@@ -141,8 +166,9 @@ export default function PatientSurveyScreen() {
     try {
       const foundPatient = await loadPatientByQr(normalizeQrValue(data));
       setPatient(foundPatient);
-      setAnswers({});
+      setAnswers(INITIAL_SURVEY);
       setSurveySubmitted(false);
+      setSurveyResult(null);
       setScannerVisible(false);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to read patient QR';
@@ -165,17 +191,66 @@ export default function PatientSurveyScreen() {
     }
 
     if (!currentPermission?.granted) {
-      if (!currentPermission) {
-        Alert.alert('Camera permission required', 'Allow camera access to scan the patient QR code.');
-      } else {
-        Alert.alert('Camera permission required', 'Allow camera access to scan the patient QR code.');
-      }
-
+      Alert.alert('Camera permission required', 'Allow camera access to scan the patient QR code.');
       return;
     }
 
     setScannerVisible(true);
   };
+
+  const submitSurvey = async () => {
+    if (!patient) {
+      Alert.alert('Missing patient', 'Scan the patient QR first.');
+      return;
+    }
+
+    setSubmitLoading(true);
+
+    try {
+      const token = await SecureStore.getItemAsync('token');
+      const username = await SecureStore.getItemAsync('username');
+
+      const response = await fetch(`${API_BASE_URL}/screenings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          patient_id: patient.id,
+          submitted_by: username || '',
+          ...answers,
+          answers,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert('Error', data?.error || 'Failed to save screening');
+        return;
+      }
+
+      setSurveyResult(data.computed);
+      setSurveySubmitted(true);
+    } catch {
+      Alert.alert('Error', 'Unable to connect to server');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const surveySummary = useMemo(() => {
+    if (!surveyResult) {
+      return null;
+    }
+
+    return [
+      `Diabetes: ${surveyResult.diabetesRisk} (${surveyResult.diabetesProbability}%)`,
+      `Hypertension: ${surveyResult.hypertensionRisk} (${surveyResult.hypertensionProbability}%)`,
+      `Overall: ${surveyResult.overallRisk} (${surveyResult.overallProbability}%)`,
+    ];
+  }, [surveyResult]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -183,7 +258,7 @@ export default function PatientSurveyScreen() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Patient Survey</Text>
           <Text style={styles.headerSubtitle}>
-            Scan the patient QR code to load the record and start the survey.
+            Scan the patient QR code, complete the ASHA questionnaire, and save the screening for the doctor workspace.
           </Text>
         </View>
 
@@ -243,58 +318,44 @@ export default function PatientSurveyScreen() {
           <>
             <Text style={styles.sectionTitle}>Health Survey</Text>
 
-            {questions.map((question) => (
-              <View key={question} style={styles.questionCard}>
-                <Text style={styles.questionText}>{question}</Text>
-
-                <View style={styles.answerRow}>
-                  <TouchableOpacity
-                    style={[
-                      styles.answerButton,
-                      answers[question] === 'Yes' && styles.selectedYes,
-                    ]}
-                    onPress={() => handleAnswer(question, 'Yes')}
-                  >
-                    <Text
-                      style={[
-                        styles.answerText,
-                        answers[question] === 'Yes' && styles.selectedAnswerText,
-                      ]}
-                    >
-                      Yes
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.answerButton,
-                      answers[question] === 'No' && styles.selectedNo,
-                    ]}
-                    onPress={() => handleAnswer(question, 'No')}
-                  >
-                    <Text
-                      style={[
-                        styles.answerText,
-                        answers[question] === 'No' && styles.selectedAnswerText,
-                      ]}
-                    >
-                      No
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+            {SURVEY_FIELDS.map((field) => (
+              <View key={field.key} style={styles.questionCard}>
+                <Text style={styles.questionText}>{field.label}</Text>
+                <Text style={styles.questionHelper}>{field.helper}</Text>
+                <TextInput
+                  style={styles.textInput}
+                  keyboardType={field.keyboardType}
+                  value={answers[field.key]}
+                  onChangeText={(value) => updateAnswer(field.key, value)}
+                  placeholder={field.label}
+                  placeholderTextColor="#9CA3AF"
+                />
               </View>
             ))}
 
-            <TouchableOpacity style={styles.submitButton} onPress={() => setSurveySubmitted(true)}>
-              <Text style={styles.submitText}>Submit Survey</Text>
+            <TouchableOpacity style={[styles.submitButton, submitLoading && { opacity: 0.7 }]} onPress={submitSurvey} disabled={submitLoading}>
+              {submitLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Submit Survey</Text>}
             </TouchableOpacity>
           </>
         )}
 
-        {surveySubmitted && patient && (
+        {surveySubmitted && patient && surveyResult && (
           <View style={styles.resultCard}>
             <Text style={styles.resultTitle}>Risk Assessment</Text>
-            <Text style={styles.resultValue}>{calculateRisk()}</Text>
+            <Text style={[styles.resultValue, getRiskClass(surveyResult.overallRisk)]}>{surveyResult.overallRisk}</Text>
+
+            <View style={styles.resultBreakdown}>
+              {surveySummary?.map((line) => (
+                <Text key={line} style={styles.resultLine}>{line}</Text>
+              ))}
+            </View>
+
+            <View style={styles.factorCard}>
+              <Text style={styles.factorTitle}>Top Risk Factors</Text>
+              {surveyResult.riskReasons.slice(0, 5).map((reason) => (
+                <Text key={reason} style={styles.factorLine}>• {reason}</Text>
+              ))}
+            </View>
           </View>
         )}
       </ScrollView>
@@ -350,343 +411,65 @@ export default function PatientSurveyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F4F7F9',
-  },
-  scrollContainer: {
-    padding: 22,
-    paddingBottom: 40,
-  },
-  header: {
-    marginBottom: 22,
-  },
-  headerTitle: {
-    fontSize: 34,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  headerSubtitle: {
-    marginTop: 8,
-    fontSize: 15,
-    color: '#6B7280',
-    lineHeight: 22,
-  },
-  scanCard: {
-    backgroundColor: '#fff',
-    borderRadius: 30,
-    padding: 28,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  scanIconWrap: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#D9FFF6',
-  },
-  scanTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-    marginTop: 14,
-  },
-  scanSubtitle: {
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 22,
-    lineHeight: 22,
-  },
-  scanButton: {
-    backgroundColor: '#19a38c',
-    borderRadius: 20,
-    paddingVertical: 16,
-    paddingHorizontal: 28,
-  },
-  scanButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  patientCard: {
-    backgroundColor: '#fff',
-    borderRadius: 30,
-    padding: 24,
-    marginBottom: 28,
-  },
-  patientHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatarCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#19a38c',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  patientMeta: {
-    marginLeft: 14,
-    flex: 1,
-  },
-  patientName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  patientInfo: {
-    marginTop: 6,
-    color: '#6B7280',
-    fontSize: 15,
-  },
-  detailGrid: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
-  },
-  detailItem: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 18,
-    padding: 14,
-  },
-  detailLabel: {
-    color: '#6B7280',
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  detailValue: {
-    marginTop: 6,
-    color: '#111827',
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  statusPill: {
-    marginTop: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ECFDF5',
-    borderRadius: 999,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  statusText: {
-    marginLeft: 8,
-    color: '#166534',
-    fontWeight: '700',
-  },
-  rescanButton: {
-    marginTop: 16,
-    borderRadius: 18,
-    paddingVertical: 14,
-    alignItems: 'center',
-    backgroundColor: '#111827',
-  },
-  rescanButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-  },
-  sectionTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 18,
-  },
-  questionCard: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 22,
-    marginBottom: 18,
-  },
-  questionText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  answerRow: {
-    flexDirection: 'row',
-    marginTop: 18,
-  },
-  answerButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 18,
-    alignItems: 'center',
-    marginRight: 10,
-    backgroundColor: '#F3F4F6',
-  },
-  selectedYes: {
-    backgroundColor: '#19a38c',
-  },
-  selectedNo: {
-    backgroundColor: '#DC2626',
-  },
-  answerText: {
-    color: '#111827',
-    fontWeight: '700',
-  },
-  selectedAnswerText: {
-    color: '#fff',
-  },
-  submitButton: {
-    backgroundColor: '#19a38c',
-    borderRadius: 22,
-    paddingVertical: 18,
-    alignItems: 'center',
-    marginTop: 18,
-  },
-  submitText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  resultCard: {
-    backgroundColor: '#fff',
-    borderRadius: 28,
-    padding: 28,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  resultTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  resultValue: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: '#19a38c',
-    marginTop: 16,
-  },
-  scannerScreen: {
-    flex: 1,
-    backgroundColor: '#F4F7F9',
-  },
-  scannerHeader: {
-    paddingHorizontal: 22,
-    paddingTop: 12,
-    paddingBottom: 18,
-  },
-  closeButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 18,
-  },
-  scannerTitle: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  scannerSubtitle: {
-    marginTop: 8,
-    color: '#6B7280',
-    lineHeight: 22,
-  },
-  cameraFrame: {
-    marginHorizontal: 22,
-    borderRadius: 32,
-    overflow: 'hidden',
-    height: 440,
-    backgroundColor: '#111827',
-    position: 'relative',
-  },
-  camera: {
-    flex: 1,
-  },
-  scanFrameOverlay: {
-    position: 'absolute',
-    left: 32,
-    right: 32,
-    top: 90,
-    bottom: 90,
-    borderRadius: 28,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.6)',
-  },
-  scanCornerTopLeft: {
-    position: 'absolute',
-    left: -2,
-    top: -2,
-    width: 28,
-    height: 28,
-    borderTopWidth: 4,
-    borderLeftWidth: 4,
-    borderColor: '#19a38c',
-    borderTopLeftRadius: 18,
-  },
-  scanCornerTopRight: {
-    position: 'absolute',
-    right: -2,
-    top: -2,
-    width: 28,
-    height: 28,
-    borderTopWidth: 4,
-    borderRightWidth: 4,
-    borderColor: '#19a38c',
-    borderTopRightRadius: 18,
-  },
-  scanCornerBottomLeft: {
-    position: 'absolute',
-    left: -2,
-    bottom: -2,
-    width: 28,
-    height: 28,
-    borderBottomWidth: 4,
-    borderLeftWidth: 4,
-    borderColor: '#19a38c',
-    borderBottomLeftRadius: 18,
-  },
-  scanCornerBottomRight: {
-    position: 'absolute',
-    right: -2,
-    bottom: -2,
-    width: 28,
-    height: 28,
-    borderBottomWidth: 4,
-    borderRightWidth: 4,
-    borderColor: '#19a38c',
-    borderBottomRightRadius: 18,
-  },
-  scannerFooter: {
-    paddingHorizontal: 22,
-    paddingTop: 18,
-  },
-  scannerHint: {
-    textAlign: 'center',
-    color: '#6B7280',
-  },
-  loadingRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginLeft: 10,
-    color: '#6B7280',
-    fontWeight: '600',
-  },
-  permissionCard: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  permissionText: {
-    marginTop: 12,
-    color: '#fff',
-    textAlign: 'center',
-    lineHeight: 22,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: '#F4F7F9' },
+  scrollContainer: { padding: 22, paddingBottom: 40 },
+  header: { marginBottom: 22 },
+  headerTitle: { fontSize: 34, fontWeight: '700', color: '#111827' },
+  headerSubtitle: { marginTop: 8, fontSize: 15, color: '#6B7280', lineHeight: 22 },
+  scanCard: { backgroundColor: '#fff', borderRadius: 30, padding: 28, alignItems: 'center', marginBottom: 24 },
+  scanIconWrap: { width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center', backgroundColor: '#D9FFF6' },
+  scanTitle: { fontSize: 24, fontWeight: '700', color: '#111827', marginTop: 14 },
+  scanSubtitle: { color: '#6B7280', textAlign: 'center', marginTop: 8, marginBottom: 22, lineHeight: 22 },
+  scanButton: { backgroundColor: '#19a38c', borderRadius: 20, paddingVertical: 16, paddingHorizontal: 28 },
+  scanButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  patientCard: { backgroundColor: '#fff', borderRadius: 30, padding: 24, marginBottom: 28 },
+  patientHeader: { flexDirection: 'row', alignItems: 'center' },
+  avatarCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#19a38c', alignItems: 'center', justifyContent: 'center' },
+  patientMeta: { marginLeft: 14, flex: 1 },
+  patientName: { fontSize: 24, fontWeight: '700', color: '#111827' },
+  patientInfo: { marginTop: 6, color: '#6B7280', fontSize: 15 },
+  detailGrid: { flexDirection: 'row', gap: 12, marginTop: 20 },
+  detailItem: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 18, padding: 14 },
+  detailLabel: { color: '#6B7280', fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.6 },
+  detailValue: { marginTop: 6, color: '#111827', fontWeight: '700', fontSize: 15 },
+  statusPill: { marginTop: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ECFDF5', borderRadius: 999, paddingVertical: 12, paddingHorizontal: 16 },
+  statusText: { marginLeft: 8, color: '#166534', fontWeight: '700' },
+  rescanButton: { marginTop: 16, borderRadius: 18, paddingVertical: 14, alignItems: 'center', backgroundColor: '#111827' },
+  rescanButtonText: { color: '#fff', fontWeight: '700' },
+  sectionTitle: { fontSize: 28, fontWeight: '700', color: '#111827', marginBottom: 18 },
+  questionCard: { backgroundColor: '#fff', borderRadius: 24, padding: 22, marginBottom: 18 },
+  questionText: { fontSize: 16, fontWeight: '600', color: '#111827' },
+  questionHelper: { marginTop: 6, color: '#6B7280', fontSize: 13 },
+  textInput: { marginTop: 14, backgroundColor: '#F3F4F6', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 14, color: '#111827', fontWeight: '600' },
+  submitButton: { backgroundColor: '#19a38c', borderRadius: 22, paddingVertical: 18, alignItems: 'center', marginTop: 18 },
+  submitText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  resultCard: { backgroundColor: '#fff', borderRadius: 28, padding: 28, marginTop: 24 },
+  resultTitle: { fontSize: 22, fontWeight: '700', color: '#111827' },
+  resultValue: { fontSize: 30, fontWeight: '700', marginTop: 16 },
+  lowRisk: { color: '#16A34A' },
+  moderateRisk: { color: '#D97706' },
+  highRisk: { color: '#DC2626' },
+  resultBreakdown: { marginTop: 16, backgroundColor: '#F9FAFB', borderRadius: 18, padding: 14 },
+  resultLine: { color: '#374151', fontWeight: '600', marginBottom: 6 },
+  factorCard: { marginTop: 16, backgroundColor: '#F3F4F6', borderRadius: 18, padding: 16 },
+  factorTitle: { color: '#111827', fontWeight: '700', marginBottom: 8 },
+  factorLine: { color: '#374151', marginBottom: 4 },
+  scannerScreen: { flex: 1, backgroundColor: '#F4F7F9' },
+  scannerHeader: { paddingHorizontal: 22, paddingTop: 12, paddingBottom: 18 },
+  closeButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
+  scannerTitle: { fontSize: 30, fontWeight: '700', color: '#111827' },
+  scannerSubtitle: { marginTop: 8, color: '#6B7280', lineHeight: 22 },
+  cameraFrame: { marginHorizontal: 22, borderRadius: 32, overflow: 'hidden', height: 440, backgroundColor: '#111827', position: 'relative' },
+  camera: { flex: 1 },
+  scanFrameOverlay: { position: 'absolute', left: 32, right: 32, top: 90, bottom: 90, borderRadius: 28, borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)' },
+  scanCornerTopLeft: { position: 'absolute', left: -2, top: -2, width: 28, height: 28, borderTopWidth: 4, borderLeftWidth: 4, borderColor: '#19a38c', borderTopLeftRadius: 18 },
+  scanCornerTopRight: { position: 'absolute', right: -2, top: -2, width: 28, height: 28, borderTopWidth: 4, borderRightWidth: 4, borderColor: '#19a38c', borderTopRightRadius: 18 },
+  scanCornerBottomLeft: { position: 'absolute', left: -2, bottom: -2, width: 28, height: 28, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: '#19a38c', borderBottomLeftRadius: 18 },
+  scanCornerBottomRight: { position: 'absolute', right: -2, bottom: -2, width: 28, height: 28, borderBottomWidth: 4, borderRightWidth: 4, borderColor: '#19a38c', borderBottomRightRadius: 18 },
+  scannerFooter: { paddingHorizontal: 22, paddingTop: 18 },
+  scannerHint: { textAlign: 'center', color: '#6B7280' },
+  loadingRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginLeft: 10, color: '#6B7280', fontWeight: '600' },
+  permissionCard: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: 'rgba(255,255,255,0.08)' },
+  permissionText: { marginTop: 12, color: '#fff', textAlign: 'center', lineHeight: 22, fontWeight: '600' },
 });

@@ -1,38 +1,16 @@
 const express = require('express');
 const pool = require('../db');
 const requireAuth = require('../middleware/auth');
+const { ensureMobileSchema, createMobileId } = require('../schema');
 
 const router = express.Router();
 
-let visitsTableReady = false;
-
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-async function ensureVisitsTable() {
-  if (visitsTableReady) return;
-
-  await pool.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS visits (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      patient_id UUID NOT NULL,
-      scheduled_time TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'Pending',
-      risk_level TEXT NOT NULL DEFAULT 'Unknown',
-      visit_date DATE NOT NULL DEFAULT CURRENT_DATE,
-      notes TEXT DEFAULT '',
-      created_at TIMESTAMP DEFAULT NOW()
-    )
-  `);
-
-  visitsTableReady = true;
-}
 
 // GET /visits — today's visits with patient names
 router.get('/', requireAuth, async (_req, res) => {
   try {
-    await ensureVisitsTable();
+    await ensureMobileSchema();
 
     const { rows } = await pool.query(`
       SELECT
@@ -69,13 +47,15 @@ router.post('/', requireAuth, async (req, res) => {
   }
 
   try {
-    await ensureVisitsTable();
+    await ensureMobileSchema();
+
+    const id = createMobileId();
 
     const { rows } = await pool.query(
-      `INSERT INTO visits (patient_id, scheduled_time, risk_level)
-       VALUES ($1, $2, $3)
+      `INSERT INTO visits (id, patient_id, scheduled_time, risk_level)
+       VALUES ($1, $2, $3, $4)
        RETURNING id, patient_id, scheduled_time, status, risk_level, visit_date`,
-      [patient_id, scheduled_time || '', risk_level || 'Unknown']
+      [id, patient_id, scheduled_time || '', risk_level || 'Unknown']
     );
 
     return res.status(201).json(rows[0]);
@@ -99,7 +79,7 @@ router.patch('/:id/status', requireAuth, async (req, res) => {
   }
 
   try {
-    await ensureVisitsTable();
+    await ensureMobileSchema();
 
     const { rows } = await pool.query(
       `UPDATE visits SET status = $1 WHERE id = $2 RETURNING id, status`,
