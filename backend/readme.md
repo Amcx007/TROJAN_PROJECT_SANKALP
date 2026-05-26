@@ -17,6 +17,8 @@ npm install
 npm run seed
 ```
 
+This seed only prepares the Express-owned tables. It does not create admin users; the single admin account is seeded from the admin panel backend.
+
 4. Start the backend:
 
 ```powershell
@@ -28,5 +30,5 @@ Endpoints
 - `POST /auth/login` — body `{ "email": "...", "password": "..." }` returns `{ token, email }` on success.
 
 Notes
-- This backend only handles authentication for now. No registration endpoint is provided — use the seed script or directly insert users into the DB.
+- This backend only handles authentication and patient data for the mobile app. Admin user creation lives in the admin panel backend.
 - Keep changes scoped to `backend/`.

@@ -16,20 +16,30 @@ router.post('/login', async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      'SELECT id, username, email, password_hash FROM users WHERE username = $1 OR email = $1 LIMIT 1',
+      'SELECT id, username, email, name, password_hash, status FROM users WHERE username = $1 OR email = $1 LIMIT 1',
       [username]
     );
     if (rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
 
     const user = rows[0];
+
+    if (user.status && user.status !== 'ACTIVE') {
+      return res.status(401).json({ error: 'Account is inactive or restricted' });
+    }
+
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, {
-      expiresIn: '8h',
-    });
+    const token = jwt.sign(
+      { userId: user.id, username: user.username || user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '8h' }
+    );
 
-    return res.json({ token, username: user.username });
+    return res.json({
+      token,
+      username: user.name || user.username || user.email,
+    });
   } catch (err) {
     console.error('Login error', err);
     return res.status(500).json({ error: 'Server error' });

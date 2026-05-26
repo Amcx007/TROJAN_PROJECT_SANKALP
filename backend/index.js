@@ -3,6 +3,7 @@ const express = require('express');
 const authRouter = require('./routes/auth');
 const statsRouter = require('./routes/stats');
 const patientsRouter = require('./routes/patients');
+const visitsRouter = require('./routes/visits');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/auth', authRouter);
 app.use('/stats', statsRouter);
 app.use('/patients', patientsRouter);
+app.use('/visits', visitsRouter);
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 
