@@ -89,19 +89,19 @@ const SURVEY_FIELDS: {
   { key: 'stress', label: 'Stress', helper: '0 to 3 scale', keyboardType: 'number-pad' },
 ];
 
-function getRiskClass(risk: string) {
-  const normalized = String(risk || '').toLowerCase();
-  if (normalized === 'high') return styles.highRisk;
-  if (normalized === 'moderate') return styles.moderateRisk;
-  return styles.lowRisk;
-}
-
 export default function PatientSurveyScreen() {
   const { t } = useTranslation();
 
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme as keyof typeof Colors];
   const styles = createStyles(colors);
+
+  const getRiskClass = (risk: string) => {
+    const normalized = String(risk || '').toLowerCase();
+    if (normalized === 'high') return styles.highRisk;
+    if (normalized === 'moderate') return styles.moderateRisk;
+    return styles.lowRisk;
+  };
 
   const [permission, requestPermission] = useCameraPermissions();
   const [scannerVisible, setScannerVisible] = useState(false);
@@ -193,15 +193,12 @@ export default function PatientSurveyScreen() {
   };
 
   const startScan = async () => {
-    let currentPermission = permission;
-
-    if (!currentPermission) {
-      currentPermission = await requestPermission();
-    }
-
-    if (!currentPermission?.granted) {
-      Alert.alert('Camera permission required', 'Allow camera access to scan the patient QR code.');
-      return;
+    if (!permission?.granted) {
+      const result = await requestPermission();
+      if (!result.granted) {
+        Alert.alert('Camera permission required', 'Allow camera access to scan the patient QR code.');
+        return;
+      }
     }
 
     setScannerVisible(true);

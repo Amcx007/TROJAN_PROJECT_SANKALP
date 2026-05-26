@@ -433,16 +433,16 @@ export default function AddPatientScreen() {
           {/* BUTTON */}
 
           <TouchableOpacity
-            style={[styles.generateButton, loading && { opacity: 0.7 }]}
+            style={[styles.generateButton, (loading || !!patientId) && { opacity: 0.5 }]}
             onPress={generatePatientId}
-            disabled={loading}
+            disabled={loading || !!patientId}
           >
 
             {loading ? (
               <ActivityIndicator color={colors.textInverse} />
             ) : (
               <Text style={styles.generateButtonText}>
-                Generate Patient ID
+                {patientId ? 'Patient Registered' : 'Generate Patient ID'}
               </Text>
             )}
 
