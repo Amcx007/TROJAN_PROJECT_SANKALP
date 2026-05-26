@@ -17,7 +17,7 @@ router.post('/login', async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      'SELECT id, username, email, name, password_hash, status FROM users WHERE username = $1 OR email = $1 LIMIT 1',
+      'SELECT id, username, email, name, password_hash, status FROM admin_panel.users WHERE username = $1 OR email = $1 LIMIT 1',
       [username]
     );
     if (rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
@@ -52,8 +52,8 @@ router.get('/me', requireAuth, async (req, res) => {
     const { rows } = await pool.query(
       `SELECT u.id, u.name, u.username, u.email, u.role, u.village, u.status,
               p.name AS phc_name
-       FROM users u
-       LEFT JOIN phcs p ON p.id = u.phc_id
+       FROM admin_panel.users u
+       LEFT JOIN admin_panel.phcs p ON p.id = u.phc_id
        WHERE u.id = $1
        LIMIT 1`,
       [req.user.userId]

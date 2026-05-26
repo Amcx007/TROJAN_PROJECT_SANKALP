@@ -754,9 +754,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
 
   searchInput: {
-
-
-    color: colors.text,
     backgroundColor: '#F3F4F6',
     borderRadius: 16,
     paddingHorizontal: 16,
@@ -795,9 +792,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
 
   timeInput: {
-
-
-    color: colors.text,
     backgroundColor: '#F3F4F6',
     borderRadius: 16,
     paddingHorizontal: 16,
