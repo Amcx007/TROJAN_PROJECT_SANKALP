@@ -51,3 +51,18 @@ pids
 *.pid
 *.seed
 *.pid.lock
+
+
+# Python virtual environments
+.venv/
+venv/
+
+# Node modules
+node_modules/
+
+# Python cache
+__pycache__/
+
+# Build files
+dist/
+build/
