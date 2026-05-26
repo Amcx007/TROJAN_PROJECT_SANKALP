@@ -1,4 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
+import { useColorScheme } from 'react-native';
+import { Colors } from '../constants/theme';
 import { router } from 'expo-router';
 
 import {
@@ -31,6 +34,12 @@ import * as SecureStore from 'expo-secure-store';
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function AddPatientScreen() {
+  const { t } = useTranslation();
+
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme as keyof typeof Colors];
+  const styles = createStyles(colors);
+
 
   const [fullName, setFullName] =
     useState('');
@@ -52,6 +61,9 @@ export default function AddPatientScreen() {
 
   const [loading, setLoading] =
     useState(false);
+
+  const [gender, setGender] =
+    useState('Male');
 
   // ADDRESS STATES
 
@@ -76,12 +88,12 @@ export default function AddPatientScreen() {
   const generatePatientId = async () => {
 
     if (!fullName || !dob || !mobile) {
-      Alert.alert('Missing Details', 'Please fill name, date of birth and mobile');
+      Alert.alert('Missing Details', t('add_patient.error_fill') || 'Please fill name, date of birth and mobile');
       return;
     }
 
     if (!/^[6-9]\d{9}$/.test(mobile)) {
-      Alert.alert('Invalid Number', 'Enter a valid 10-digit Indian mobile number');
+      Alert.alert('Invalid Number', t('add_patient.error_mobile') || 'Enter a valid 10-digit Indian mobile number');
       return;
     }
 
@@ -101,20 +113,21 @@ export default function AddPatientScreen() {
           address: fullAddressPreview,
           dob,
           mobile,
+          gender,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        Alert.alert('Error', data?.error || 'Failed to register patient');
+        Alert.alert('Error', data?.error || t('add_patient.error_reg') || 'Failed to register patient');
         return;
       }
 
       setPatientId(data.id);
 
     } catch {
-      Alert.alert('Error', 'Unable to connect to server');
+      Alert.alert('Error', t('add_patient.error_conn') || 'Unable to connect to server');
     } finally {
       setLoading(false);
     }
@@ -183,7 +196,7 @@ export default function AddPatientScreen() {
             <Ionicons
               name="arrow-back"
               size={24}
-              color="#111827"
+              color={colors.text}
             />
 
           </TouchableOpacity>
@@ -201,13 +214,13 @@ export default function AddPatientScreen() {
           {/* FULL NAME */}
 
           <Text style={styles.label}>
-            Full Name
+            {t('add_patient.full_name')}
           </Text>
 
           <TextInput
             style={styles.input}
-            placeholder="Enter patient name"
-            placeholderTextColor="#9CA3AF"
+            placeholder={t("add_patient.name_placeholder")}
+            placeholderTextColor={colors.textMuted}
             value={fullName}
             onChangeText={setFullName}
           />
@@ -226,8 +239,8 @@ export default function AddPatientScreen() {
 
               <TextInput
                 style={styles.halfInput}
-                placeholder="House No"
-                placeholderTextColor="#9CA3AF"
+                placeholder={t("add_patient.house_no")}
+                placeholderTextColor={colors.textMuted}
                 value={houseNo}
                 onChangeText={setHouseNo}
               />
@@ -240,8 +253,8 @@ export default function AddPatientScreen() {
 
               <TextInput
                 style={styles.halfInput}
-                placeholder="Street Name"
-                placeholderTextColor="#9CA3AF"
+                placeholder={t("add_patient.street_name")}
+                placeholderTextColor={colors.textMuted}
                 value={streetName}
                 onChangeText={setStreetName}
               />
@@ -254,8 +267,8 @@ export default function AddPatientScreen() {
 
               <TextInput
                 style={styles.halfInput}
-                placeholder="Village"
-                placeholderTextColor="#9CA3AF"
+                placeholder={t("add_patient.village")}
+                placeholderTextColor={colors.textMuted}
                 value={village}
                 onChangeText={setVillage}
               />
@@ -268,8 +281,8 @@ export default function AddPatientScreen() {
 
               <TextInput
                 style={styles.halfInput}
-                placeholder="District"
-                placeholderTextColor="#9CA3AF"
+                placeholder={t("add_patient.district")}
+                placeholderTextColor={colors.textMuted}
                 value={district}
                 onChangeText={setDistrict}
               />
@@ -282,8 +295,8 @@ export default function AddPatientScreen() {
 
               <TextInput
                 style={styles.halfInput}
-                placeholder="State"
-                placeholderTextColor="#9CA3AF"
+                placeholder={t("add_patient.state")}
+                placeholderTextColor={colors.textMuted}
                 value={state}
                 onChangeText={setState}
               />
@@ -296,8 +309,8 @@ export default function AddPatientScreen() {
 
               <TextInput
                 style={styles.halfInput}
-                placeholder="ZIP Code"
-                placeholderTextColor="#9CA3AF"
+                placeholder={t("add_patient.zip_code")}
+                placeholderTextColor={colors.textMuted}
                 keyboardType="number-pad"
                 maxLength={6}
                 value={zipCode}
@@ -312,8 +325,8 @@ export default function AddPatientScreen() {
 
               <TextInput
                 style={styles.fullWidthInput}
-                placeholder="Full Address Preview"
-                placeholderTextColor="#9CA3AF"
+                placeholder={t("add_patient.preview")}
+                placeholderTextColor={colors.textMuted}
                 multiline
                 editable={false}
                 selectTextOnFocus={false}
@@ -323,6 +336,30 @@ export default function AddPatientScreen() {
 
             </View>
 
+          </View>
+
+          {/* GENDER */}
+          <Text style={styles.label}>
+            Gender
+          </Text>
+          <View style={styles.genderRow}>
+            {[{k: 'Male', v: t('add_patient.male')}, {k: 'Female', v: t('add_patient.female')}, {k: 'Other', v: t('add_patient.other')}].map(g => (
+              <TouchableOpacity
+                key={g}
+                style={[
+                  styles.genderBtn,
+                  gender === g.k && styles.genderBtnActive
+                ]}
+                onPress={() => setGender(g.k)}
+              >
+                <Text style={[
+                  styles.genderBtnText,
+                  gender === g.k && styles.genderBtnTextActive
+                ]}>
+                  {g}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
           {/* DATE OF BIRTH */}
@@ -339,8 +376,8 @@ export default function AddPatientScreen() {
 
             <TextInput
               style={styles.dateInput}
-              placeholder="DD-MM-YYYY"
-              placeholderTextColor="#9CA3AF"
+              placeholder={t("add_patient.dob_placeholder")}
+              placeholderTextColor={colors.textMuted}
               value={dob}
               editable={false}
               pointerEvents="none"
@@ -349,7 +386,7 @@ export default function AddPatientScreen() {
             <Ionicons
               name="calendar-outline"
               size={22}
-              color="#19a38c"
+              color={colors.tint}
             />
 
           </TouchableOpacity>
@@ -383,8 +420,8 @@ export default function AddPatientScreen() {
 
             <TextInput
               style={styles.mobileInput}
-              placeholder="Enter mobile number"
-              placeholderTextColor="#9CA3AF"
+              placeholder={t("add_patient.mobile_placeholder")}
+              placeholderTextColor={colors.textMuted}
               keyboardType="number-pad"
               maxLength={10}
               value={mobile}
@@ -402,7 +439,7 @@ export default function AddPatientScreen() {
           >
 
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.textInverse} />
             ) : (
               <Text style={styles.generateButtonText}>
                 Generate Patient ID
@@ -420,7 +457,7 @@ export default function AddPatientScreen() {
           <View style={styles.qrCard}>
 
             <Text style={styles.qrTitle}>
-              Patient Health ID
+              {t('add_patient.health_id')}
             </Text>
 
             <Text style={styles.patientId}>
@@ -449,11 +486,11 @@ export default function AddPatientScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#F4F7F9',
+    backgroundColor: colors.background,
   },
 
   scrollContainer: {
@@ -471,7 +508,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -480,11 +517,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
 
   formCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 30,
     padding: 22,
   },
@@ -492,18 +529,21 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 10,
     marginTop: 12,
   },
 
   input: {
+
+
+    color: colors.text,
     backgroundColor: '#F3F4F6',
     borderRadius: 18,
     paddingHorizontal: 18,
     paddingVertical: 16,
     fontSize: 15,
-    color: '#111827',
+    color: colors.text,
   },
 
   addressContainer: {
@@ -519,12 +559,15 @@ const styles = StyleSheet.create({
   },
 
   halfInput: {
+
+
+    color: colors.text,
     backgroundColor: '#F3F4F6',
     borderRadius: 18,
     paddingHorizontal: 18,
     paddingVertical: 16,
     fontSize: 15,
-    color: '#111827',
+    color: colors.text,
   },
 
   fullWidthWrapper: {
@@ -533,14 +576,49 @@ const styles = StyleSheet.create({
   },
 
   fullWidthInput: {
+
+
+    color: colors.text,
     backgroundColor: '#F3F4F6',
     borderRadius: 18,
     paddingHorizontal: 18,
     paddingVertical: 18,
     fontSize: 15,
-    color: '#111827',
+    color: colors.text,
     minHeight: 70,
     textAlignVertical: 'top',
+  },
+
+  genderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+
+  genderBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    marginHorizontal: 4,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+
+  genderBtnActive: {
+    backgroundColor: colors.iconBgGreen,
+    borderColor: colors.tint,
+  },
+
+  genderBtnText: {
+    color: colors.textMuted,
+    fontWeight: '600',
+    fontSize: 15,
+  },
+
+  genderBtnTextActive: {
+    color: colors.tint,
   },
 
   dateInputWrapper: {
@@ -553,10 +631,13 @@ const styles = StyleSheet.create({
   },
 
   dateInput: {
+
+
+    color: colors.text,
     flex: 1,
     paddingVertical: 16,
     fontSize: 15,
-    color: '#111827',
+    color: colors.text,
   },
 
   mobileWrapper: {
@@ -569,20 +650,23 @@ const styles = StyleSheet.create({
 
   countryCode: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textMuted,
     marginRight: 10,
   },
 
   mobileInput: {
+
+
+    color: colors.text,
     flex: 1,
     paddingVertical: 16,
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
   },
 
   generateButton: {
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     borderRadius: 20,
     paddingVertical: 18,
     alignItems: 'center',
@@ -590,13 +674,13 @@ const styles = StyleSheet.create({
   },
 
   generateButtonText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontSize: 18,
     fontWeight: '700',
   },
 
   qrCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 30,
     padding: 24,
     marginTop: 24,
@@ -606,13 +690,13 @@ const styles = StyleSheet.create({
   qrTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
 
   patientId: {
     marginTop: 10,
     fontSize: 16,
-    color: '#19a38c',
+    color: colors.tint,
     fontWeight: '700',
   },
 

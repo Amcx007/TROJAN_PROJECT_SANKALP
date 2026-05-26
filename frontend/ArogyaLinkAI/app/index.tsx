@@ -1,4 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
+import { useColorScheme } from 'react-native';
+import { Colors } from '../constants/theme';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
@@ -24,6 +27,12 @@ const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL;
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
+
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme as keyof typeof Colors];
+  const styles = createStyles(colors);
+
 
   const [username, setUsername] =
     useState('');
@@ -106,18 +115,19 @@ export default function LoginScreen() {
               <Ionicons
                 name="medical"
                 size={34}
-                color="#fff"
+                color={colors.textInverse}
               />
             </View>
 
             <View style={styles.brandContainer}>
 
-              <Text style={styles.title}>
-                ASHA+
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center' }}>
+                <Text style={styles.title}>Asha</Text>
+                <Text style={{ color: colors.tint, fontSize: 22, fontWeight: '700', marginTop: 2 }}>+</Text>
+              </View>
 
               <Text style={styles.subtitle}>
-                Empowering rural healthcare
+                {t("login.subtitle")}
               </Text>
 
             </View>
@@ -127,12 +137,12 @@ export default function LoginScreen() {
               <Ionicons
                 name="person-outline"
                 size={20}
-                color="#7a7a7a"
+                color={colors.icon}
               />
 
               <TextInput
-                placeholder="Username"
-                placeholderTextColor="#8a8a8a"
+                placeholder={t("login.username")}
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 value={username}
                 onChangeText={setUsername}
@@ -147,12 +157,12 @@ export default function LoginScreen() {
               <Ionicons
                 name="lock-closed-outline"
                 size={20}
-                color="#7a7a7a"
+                color={colors.icon}
               />
 
               <TextInput
-                placeholder="Password"
-                placeholderTextColor="#8a8a8a"
+                placeholder={t("login.password")}
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry={!showPassword}
                 style={styles.passwordInput}
                 value={password}
@@ -186,7 +196,7 @@ export default function LoginScreen() {
             >
 
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.textInverse} />
               ) : (
                 <Text style={styles.loginText}>
                   Login
@@ -197,7 +207,7 @@ export default function LoginScreen() {
 
             <TouchableOpacity>
               <Text style={styles.forgotText}>
-                Forgot Password?
+                {t("login.forgot")}
               </Text>
             </TouchableOpacity>
 
@@ -211,10 +221,10 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#dff5f0',
+    backgroundColor: colors.background,
   },
 
   scrollContainer: {
@@ -224,7 +234,7 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 36,
     padding: 32,
     shadowColor: '#000',
@@ -237,7 +247,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 40,
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
@@ -252,17 +262,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#111',
+    color: colors.text,
   },
 
   subtitle: {
     marginTop: 6,
-    color: '#6b6b6b',
+    color: colors.textMuted,
     fontSize: 15,
   },
 
   inputWrapper: {
-    backgroundColor: '#f5f7f7',
+    backgroundColor: colors.background,
     borderRadius: 18,
     paddingHorizontal: 18,
     flexDirection: 'row',
@@ -271,6 +281,9 @@ const styles = StyleSheet.create({
   },
 
   input: {
+
+
+    color: colors.text,
     flex: 1,
     paddingVertical: 18,
     paddingLeft: 12,
@@ -278,7 +291,7 @@ const styles = StyleSheet.create({
   },
 
   passwordContainer: {
-    backgroundColor: '#f5f7f7',
+    backgroundColor: colors.background,
     borderRadius: 18,
     paddingHorizontal: 18,
     flexDirection: 'row',
@@ -287,6 +300,9 @@ const styles = StyleSheet.create({
   },
 
   passwordInput: {
+
+
+    color: colors.text,
     flex: 1,
     paddingVertical: 18,
     paddingLeft: 12,
@@ -294,18 +310,18 @@ const styles = StyleSheet.create({
   },
 
   showText: {
-    color: '#19a38c',
+    color: colors.tint,
     fontWeight: '600',
   },
 
   error: {
-    color: '#ff4d4d',
+    color: colors.danger,
     marginBottom: 15,
     marginLeft: 4,
   },
 
   loginBtn: {
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     padding: 18,
     borderRadius: 20,
     alignItems: 'center',
@@ -313,7 +329,7 @@ const styles = StyleSheet.create({
   },
 
   loginText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontSize: 18,
     fontWeight: '600',
   },
@@ -321,7 +337,7 @@ const styles = StyleSheet.create({
   forgotText: {
     marginTop: 20,
     textAlign: 'center',
-    color: '#19a38c',
+    color: colors.tint,
     fontWeight: '500',
   },
 });

@@ -1,1 +1,56 @@
-node_modules
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+
+# ── Environment / Secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ── Build Outputs ─────────────────────────────────────────────────────────────
+dist/
+build/
+web-build/
+*.tsbuildinfo
+
+# ── Expo / React Native ───────────────────────────────────────────────────────
+.expo/
+/ios
+/android
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+.metro-health-check*
+
+# ── Python (Risk Analysis) ────────────────────────────────────────────────────
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# ── Data Files ────────────────────────────────────────────────────────────────
+csv_files/
+Risk\ Analysis/backend/patient_data.csv
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.*
+
+# ── Editor ────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Claude / AI tooling ───────────────────────────────────────────────────────
+.claude/

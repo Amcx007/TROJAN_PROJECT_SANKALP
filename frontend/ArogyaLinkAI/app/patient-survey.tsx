@@ -1,5 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { useColorScheme } from 'react-native';
+import { Colors } from '../constants/theme';
 import {
   View,
   Text,
@@ -94,6 +97,12 @@ function getRiskClass(risk: string) {
 }
 
 export default function PatientSurveyScreen() {
+  const { t } = useTranslation();
+
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme as keyof typeof Colors];
+  const styles = createStyles(colors);
+
   const [permission, requestPermission] = useCameraPermissions();
   const [scannerVisible, setScannerVisible] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
@@ -264,7 +273,7 @@ export default function PatientSurveyScreen() {
 
         <View style={styles.scanCard}>
           <View style={styles.scanIconWrap}>
-            <Ionicons name="qr-code-outline" size={34} color="#19a38c" />
+            <Ionicons name="qr-code-outline" size={34} color={colors.tint} />
           </View>
 
           <Text style={styles.scanTitle}>Scan Patient QR</Text>
@@ -281,7 +290,7 @@ export default function PatientSurveyScreen() {
           <View style={styles.patientCard}>
             <View style={styles.patientHeader}>
               <View style={styles.avatarCircle}>
-                <Ionicons name="person" size={28} color="#fff" />
+                <Ionicons name="person" size={28} color={colors.textInverse} />
               </View>
 
               <View style={styles.patientMeta}>
@@ -304,7 +313,7 @@ export default function PatientSurveyScreen() {
             </View>
 
             <View style={styles.statusPill}>
-              <Ionicons name="checkmark-circle" size={18} color="#16A34A" />
+              <Ionicons name="checkmark-circle" size={18} color={colors.success} />
               <Text style={styles.statusText}>Patient loaded from QR</Text>
             </View>
 
@@ -364,7 +373,7 @@ export default function PatientSurveyScreen() {
         <SafeAreaView style={styles.scannerScreen}>
           <View style={styles.scannerHeader}>
             <TouchableOpacity style={styles.closeButton} onPress={() => setScannerVisible(false)}>
-              <Ionicons name="close" size={26} color="#111827" />
+              <Ionicons name="close" size={26} color={colors.text} />
             </TouchableOpacity>
 
             <Text style={styles.scannerTitle}>Scan Patient QR</Text>
@@ -381,7 +390,7 @@ export default function PatientSurveyScreen() {
               />
             ) : (
               <View style={styles.permissionCard}>
-                <Ionicons name="camera-outline" size={34} color="#19a38c" />
+                <Ionicons name="camera-outline" size={34} color={colors.tint} />
                 <Text style={styles.permissionText}>Camera permission is needed to scan QR codes.</Text>
               </View>
             )}
@@ -397,7 +406,7 @@ export default function PatientSurveyScreen() {
           <View style={styles.scannerFooter}>
             {scanLoading ? (
               <View style={styles.loadingRow}>
-                <ActivityIndicator color="#19a38c" />
+                <ActivityIndicator color={colors.tint} />
                 <Text style={styles.loadingText}>Loading patient details...</Text>
               </View>
             ) : (
@@ -410,6 +419,7 @@ export default function PatientSurveyScreen() {
   );
 }
 
+<<<<<<< HEAD
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F7F9' },
   scrollContainer: { padding: 22, paddingBottom: 40 },
@@ -473,3 +483,346 @@ const styles = StyleSheet.create({
   permissionCard: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: 'rgba(255,255,255,0.08)' },
   permissionText: { marginTop: 12, color: '#fff', textAlign: 'center', lineHeight: 22, fontWeight: '600' },
 });
+=======
+const createStyles = (colors: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContainer: {
+    padding: 22,
+    paddingBottom: 40,
+  },
+  header: {
+    marginBottom: 22,
+  },
+  headerTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  headerSubtitle: {
+    marginTop: 8,
+    fontSize: 15,
+    color: colors.textMuted,
+    lineHeight: 22,
+  },
+  scanCard: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 30,
+    padding: 28,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  scanIconWrap: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#D9FFF6',
+  },
+  scanTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 14,
+  },
+  scanSubtitle: {
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 22,
+    lineHeight: 22,
+  },
+  scanButton: {
+    backgroundColor: colors.headerBackground,
+    borderRadius: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 28,
+  },
+  scanButtonText: {
+    color: colors.textInverse,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  patientCard: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 30,
+    padding: 24,
+    marginBottom: 28,
+  },
+  patientHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.headerBackground,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  patientMeta: {
+    marginLeft: 14,
+    flex: 1,
+  },
+  patientName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  patientInfo: {
+    marginTop: 6,
+    color: colors.textMuted,
+    fontSize: 15,
+  },
+  detailGrid: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  detailItem: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 18,
+    padding: 14,
+  },
+  detailLabel: {
+    color: colors.textMuted,
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  detailValue: {
+    marginTop: 6,
+    color: colors.text,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  statusPill: {
+    marginTop: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ECFDF5',
+    borderRadius: 999,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  statusText: {
+    marginLeft: 8,
+    color: '#166534',
+    fontWeight: '700',
+  },
+  rescanButton: {
+    marginTop: 16,
+    borderRadius: 18,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: '#111827',
+  },
+  rescanButtonText: {
+    color: colors.textInverse,
+    fontWeight: '700',
+  },
+  sectionTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 18,
+  },
+  questionCard: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 24,
+    padding: 22,
+    marginBottom: 18,
+  },
+  questionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  answerRow: {
+    flexDirection: 'row',
+    marginTop: 18,
+  },
+  answerButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 18,
+    alignItems: 'center',
+    marginRight: 10,
+    backgroundColor: '#F3F4F6',
+  },
+  selectedYes: {
+    backgroundColor: colors.headerBackground,
+  },
+  selectedNo: {
+    backgroundColor: '#DC2626',
+  },
+  answerText: {
+    color: colors.text,
+    fontWeight: '700',
+  },
+  selectedAnswerText: {
+    color: colors.textInverse,
+  },
+  submitButton: {
+    backgroundColor: colors.headerBackground,
+    borderRadius: 22,
+    paddingVertical: 18,
+    alignItems: 'center',
+    marginTop: 18,
+  },
+  submitText: {
+    color: colors.textInverse,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  resultCard: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 28,
+    padding: 28,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  resultTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  resultValue: {
+    fontSize: 30,
+    fontWeight: '700',
+    color: colors.tint,
+    marginTop: 16,
+  },
+  scannerScreen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scannerHeader: {
+    paddingHorizontal: 22,
+    paddingTop: 12,
+    paddingBottom: 18,
+  },
+  closeButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.cardBackground,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+  },
+  scannerTitle: {
+    fontSize: 30,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  scannerSubtitle: {
+    marginTop: 8,
+    color: colors.textMuted,
+    lineHeight: 22,
+  },
+  cameraFrame: {
+    marginHorizontal: 22,
+    borderRadius: 32,
+    overflow: 'hidden',
+    height: 440,
+    backgroundColor: '#111827',
+    position: 'relative',
+  },
+  camera: {
+    flex: 1,
+  },
+  scanFrameOverlay: {
+    position: 'absolute',
+    left: 32,
+    right: 32,
+    top: 90,
+    bottom: 90,
+    borderRadius: 28,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.6)',
+  },
+  scanCornerTopLeft: {
+    position: 'absolute',
+    left: -2,
+    top: -2,
+    width: 28,
+    height: 28,
+    borderTopWidth: 4,
+    borderLeftWidth: 4,
+    borderColor: '#19a38c',
+    borderTopLeftRadius: 18,
+  },
+  scanCornerTopRight: {
+    position: 'absolute',
+    right: -2,
+    top: -2,
+    width: 28,
+    height: 28,
+    borderTopWidth: 4,
+    borderRightWidth: 4,
+    borderColor: '#19a38c',
+    borderTopRightRadius: 18,
+  },
+  scanCornerBottomLeft: {
+    position: 'absolute',
+    left: -2,
+    bottom: -2,
+    width: 28,
+    height: 28,
+    borderBottomWidth: 4,
+    borderLeftWidth: 4,
+    borderColor: '#19a38c',
+    borderBottomLeftRadius: 18,
+  },
+  scanCornerBottomRight: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 28,
+    height: 28,
+    borderBottomWidth: 4,
+    borderRightWidth: 4,
+    borderColor: '#19a38c',
+    borderBottomRightRadius: 18,
+  },
+  scannerFooter: {
+    paddingHorizontal: 22,
+    paddingTop: 18,
+  },
+  scannerHint: {
+    textAlign: 'center',
+    color: colors.textMuted,
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginLeft: 10,
+    color: colors.textMuted,
+    fontWeight: '600',
+  },
+  permissionCard: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  permissionText: {
+    marginTop: 12,
+    color: colors.textInverse,
+    textAlign: 'center',
+    lineHeight: 22,
+    fontWeight: '600',
+  },
+});
+>>>>>>> 7ad45b9f9d7f1e92d2336ccb284e265413341541

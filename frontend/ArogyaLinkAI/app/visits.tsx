@@ -1,4 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useCallback } from 'react';
+import { useColorScheme } from 'react-native';
+import { Colors } from '../constants/theme';
 import { router } from 'expo-router';
 
 import {
@@ -41,6 +44,12 @@ type Patient = {
 type RiskLevel = 'Low' | 'Moderate' | 'High';
 
 export default function VisitsScreen() {
+  const { t } = useTranslation();
+
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme as keyof typeof Colors];
+  const styles = createStyles(colors);
+
 
   const [visits, setVisits] =
     useState<Visit[]>([]);
@@ -227,7 +236,7 @@ export default function VisitsScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="arrow-back" size={24} color="#111827" />
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>
@@ -238,7 +247,7 @@ export default function VisitsScreen() {
             style={styles.addButton}
             onPress={openScheduleModal}
           >
-            <Ionicons name="add" size={28} color="#fff" />
+            <Ionicons name="add" size={28} color={colors.textInverse} />
           </TouchableOpacity>
 
         </View>
@@ -269,7 +278,7 @@ export default function VisitsScreen() {
         {loading ? (
 
           <View style={styles.emptyCard}>
-            <ActivityIndicator color="#19a38c" />
+            <ActivityIndicator color={colors.tint} />
             <Text style={styles.emptyText}>
               Loading visits...
             </Text>
@@ -334,7 +343,7 @@ export default function VisitsScreen() {
                   <Ionicons
                     name="time-outline"
                     size={18}
-                    color="#6B7280"
+                    color={colors.textMuted}
                   />
                   <Text style={styles.infoText}>
                     {visit.scheduled_time}
@@ -403,7 +412,7 @@ export default function VisitsScreen() {
               style={styles.closeButton}
               onPress={() => setShowModal(false)}
             >
-              <Ionicons name="close" size={26} color="#111827" />
+              <Ionicons name="close" size={26} color={colors.text} />
             </TouchableOpacity>
 
             <Text style={styles.modalTitle}>
@@ -417,7 +426,7 @@ export default function VisitsScreen() {
             <TextInput
               style={styles.searchInput}
               placeholder="Search patient by name..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textMuted}
               value={patientSearch}
               onChangeText={setPatientSearch}
             />
@@ -425,7 +434,7 @@ export default function VisitsScreen() {
             {patientsLoading ? (
 
               <ActivityIndicator
-                color="#19a38c"
+                color={colors.tint}
                 style={{ marginVertical: 16 }}
               />
 
@@ -467,7 +476,7 @@ export default function VisitsScreen() {
             <TextInput
               style={styles.timeInput}
               placeholder="Enter visit time"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textMuted}
               value={scheduledTime}
               onChangeText={setScheduledTime}
             />
@@ -511,7 +520,7 @@ export default function VisitsScreen() {
               disabled={scheduling}
             >
               {scheduling ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.textInverse} />
               ) : (
                 <Text style={styles.confirmButtonText}>
                   Confirm Visit
@@ -530,11 +539,11 @@ export default function VisitsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#F4F7F9',
+    backgroundColor: colors.background,
   },
 
   scrollContainer: {
@@ -552,7 +561,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -561,7 +570,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
     flex: 1,
   },
 
@@ -569,13 +578,13 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   summaryCard: {
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     borderRadius: 30,
     padding: 26,
     flexDirection: 'row',
@@ -588,45 +597,45 @@ const styles = StyleSheet.create({
   },
 
   summaryNumber: {
-    color: '#fff',
+    color: colors.textInverse,
     fontSize: 30,
     fontWeight: '700',
   },
 
   summaryLabel: {
-    color: '#D1FAE5',
+    color: colors.textInverse,
     marginTop: 8,
     fontSize: 14,
   },
 
   emptyCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 24,
     padding: 32,
     alignItems: 'center',
   },
 
   emptyText: {
-    color: '#6B7280',
+    color: colors.textMuted,
     fontSize: 15,
     marginBottom: 16,
   },
 
   emptyScheduleButton: {
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     borderRadius: 18,
     paddingVertical: 14,
     paddingHorizontal: 24,
   },
 
   emptyScheduleText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontWeight: '700',
     fontSize: 15,
   },
 
   visitCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderRadius: 28,
     padding: 24,
     marginBottom: 20,
@@ -641,7 +650,7 @@ const styles = StyleSheet.create({
   patientName: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
 
   statusBadge: {
@@ -651,7 +660,7 @@ const styles = StyleSheet.create({
   },
 
   completedBadge: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.iconBgGreen,
   },
 
   pendingBadge: {
@@ -659,12 +668,12 @@ const styles = StyleSheet.create({
   },
 
   processingBadge: {
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.iconBgBlue,
   },
 
   statusText: {
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
 
   infoRow: {
@@ -675,7 +684,7 @@ const styles = StyleSheet.create({
 
   infoText: {
     marginLeft: 10,
-    color: '#374151',
+    color: colors.text,
     fontSize: 15,
   },
 
@@ -688,7 +697,7 @@ const styles = StyleSheet.create({
   },
 
   visitButtonText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontWeight: '700',
     fontSize: 16,
   },
@@ -702,7 +711,7 @@ const styles = StyleSheet.create({
   },
 
   completeButtonText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontWeight: '700',
     fontSize: 16,
   },
@@ -714,7 +723,7 @@ const styles = StyleSheet.create({
   },
 
   modalCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.cardBackground,
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
     padding: 28,
@@ -732,25 +741,28 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 20,
   },
 
   modalLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 8,
     marginTop: 16,
   },
 
   searchInput: {
+
+
+    color: colors.text,
     backgroundColor: '#F3F4F6',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#111827',
+    color: colors.text,
   },
 
   patientList: {
@@ -758,7 +770,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
 
   patientOption: {
@@ -774,7 +786,7 @@ const styles = StyleSheet.create({
 
   patientOptionText: {
     fontSize: 15,
-    color: '#374151',
+    color: colors.text,
   },
 
   patientOptionTextSelected: {
@@ -783,12 +795,15 @@ const styles = StyleSheet.create({
   },
 
   timeInput: {
+
+
+    color: colors.text,
     backgroundColor: '#F3F4F6',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#111827',
+    color: colors.text,
   },
 
   riskRow: {
@@ -808,7 +823,7 @@ const styles = StyleSheet.create({
   },
 
   riskLowSelected: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.iconBgGreen,
     borderColor: '#16A34A',
   },
 
@@ -818,21 +833,21 @@ const styles = StyleSheet.create({
   },
 
   riskHighSelected: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.iconBgRed,
     borderColor: '#DC2626',
   },
 
   riskOptionText: {
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textMuted,
   },
 
   riskOptionTextSelected: {
-    color: '#111827',
+    color: colors.text,
   },
 
   confirmButton: {
-    backgroundColor: '#19a38c',
+    backgroundColor: colors.headerBackground,
     borderRadius: 20,
     paddingVertical: 18,
     alignItems: 'center',
@@ -840,7 +855,7 @@ const styles = StyleSheet.create({
   },
 
   confirmButtonText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontSize: 17,
     fontWeight: '700',
   },
