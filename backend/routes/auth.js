@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const requireAuth = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -42,6 +43,25 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Login error', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT u.id, u.name, u.username, u.email, u.role, u.village, u.status,
+              p.name AS phc_name
+       FROM users u
+       LEFT JOIN phcs p ON p.id = u.phc_id
+       WHERE u.id = $1
+       LIMIT 1`,
+      [req.user.userId]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    return res.json(rows[0]);
+  } catch (err) {
+    console.error('Me error', err);
     return res.status(500).json({ error: 'Server error' });
   }
 });
