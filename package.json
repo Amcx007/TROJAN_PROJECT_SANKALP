@@ -1,6 +1,15 @@
 {
-  "dependencies": {
-    "react-native-qrcode-svg": "^6.3.21",
-    "react-native-svg": "^15.15.5"
+  "name": "trojan-sankalp",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:backend-core": "npm run start --workspace=apps/backend-core",
+    "dev:mobile": "npm run start --workspace=apps/mobile",
+    "dev:admin-frontend": "npm run dev --workspace=apps/admin-frontend",
+    "dev:admin-backend": "npm run start:dev --workspace=apps/admin-backend",
+    "dev:risk-frontend": "npm run dev --workspace=apps/risk-frontend"
   }
 }
