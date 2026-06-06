@@ -1,7 +1,5 @@
 # 📚 Trojan Project Sankalp
 
-![Banner](https://raw.githubusercontent.com/your-repo/trojan_project_sankalp/main/assets/banner.png)
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
