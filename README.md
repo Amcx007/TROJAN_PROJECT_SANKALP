@@ -64,6 +64,11 @@ uvicorn main:app --reload   # FastAPI server
 - Run `npm audit` and `pip audit` regularly to keep dependencies safe.
 
 ## 📄 License
-This project is licensed under the **MIT License** – see the `LICENSE` file for details.
+
+This software is jointly owned by the project contributors and is made available for personal, educational, and research use only.
+
+Any commercial use requires prior written permission from all the copyright holders.
+
+See the `LICENSE` file for complete licensing terms.
 
 ---
